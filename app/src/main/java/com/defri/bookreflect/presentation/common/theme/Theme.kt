@@ -14,8 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
-import androidx.core.view.WindowCompat
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import androidx.core.view.WindowInsetsControllerCompat
 
 private val LightColorScheme = lightColorScheme(
     primary = Color(0xFF4A90E2),
@@ -39,7 +38,7 @@ private val DarkColorScheme = darkColorScheme(
     background = Color(0xFF121212),
     surface = Color(0xFF1E1E1E),
     onPrimary = Color.White,
-    onSecondary = Color.White,чч
+    onSecondary = Color.White,
     onTertiary = Color.White,
     onBackground = Color.White,
     onSurface = Color.White,
@@ -53,22 +52,21 @@ fun BookReflectTheme(
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
+    val context = LocalContext.current
+    val view = LocalView.current
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }
 
-    val systemUiController = rememberSystemUiController()
-    val useDarkIcons = !darkTheme
     SideEffect {
-        systemUiController.setStatusBarColor(
-            color = colorScheme.primary,
-            darkIcons = useDarkIcons
-        )
+        val window = (context as? Activity)?.window
+        window?.statusBarColor = colorScheme.primary.toArgb()
+        val insetsController = window?.let { WindowInsetsControllerCompat(it, view) }
+        insetsController?.isAppearanceLightStatusBars = !darkTheme
     }
 
     MaterialTheme(
@@ -76,4 +74,4 @@ fun BookReflectTheme(
         typography = Typography,
         content = content
     )
-} 
+}

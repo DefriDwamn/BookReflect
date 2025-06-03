@@ -67,4 +67,10 @@ dependencies {
 
 kapt {
     correctErrorTypes = true
+    arguments {
+        arg("dagger.fastInit", "ENABLED")
+        arg("dagger.hilt.android.internal.disableAndroidSuperclassValidation", "true")
+        arg("dagger.hilt.android.internal.projectType", "application")
+        arg("dagger.hilt.internal.useAggregatingRootProcessor", "false")
+    }
 }
