@@ -1,27 +1,27 @@
 package com.defri.bookreflect.presentation.auth
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import com.defri.bookreflect.core.common.BaseViewModel
+import com.defri.bookreflect.core.common.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class ForgotPasswordViewModel @Inject constructor() : ViewModel() {
-    private val _uiState = MutableStateFlow<ForgotPasswordUiState>(ForgotPasswordUiState.Initial)
-    val uiState: StateFlow<ForgotPasswordUiState> = _uiState.asStateFlow()
+class ForgotPasswordViewModel @Inject constructor() : BaseViewModel<ForgotPasswordState, ForgotPasswordEvent>() {
+    override fun initialState(): ForgotPasswordState = ForgotPasswordState()
 
-    fun sendResetLink(email: String) {
-        viewModelScope.launch {
-            _uiState.value = ForgotPasswordUiState.Loading
+    override fun handleEvent(event: ForgotPasswordEvent) {
+        when (event) {
+            is ForgotPasswordEvent.SendResetLink -> sendResetLink(event.email)
+        }
+    }
+
+    private fun sendResetLink(email: String) {
+        launchWithLoading {
             if (validateEmail(email)) {
                 // TODO: Implement password reset logic w repository
-                _uiState.value = ForgotPasswordUiState.Success
+                setState { copy(result = Result.Success(Unit)) }
             } else {
-                _uiState.value = ForgotPasswordUiState.Error("Please enter a valid email address")
+                setState { copy(result = Result.Error(Exception("Please enter a valid email address"))) }
             }
         }
     }
@@ -31,9 +31,10 @@ class ForgotPasswordViewModel @Inject constructor() : ViewModel() {
     }
 }
 
-sealed class ForgotPasswordUiState {
-    object Initial : ForgotPasswordUiState()
-    object Loading : ForgotPasswordUiState()
-    object Success : ForgotPasswordUiState()
-    data class Error(val message: String) : ForgotPasswordUiState()
+data class ForgotPasswordState(
+    val result: Result<Unit> = Result.Success(Unit)
+)
+
+sealed class ForgotPasswordEvent {
+    data class SendResetLink(val email: String) : ForgotPasswordEvent()
 } 

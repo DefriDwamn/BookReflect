@@ -1,27 +1,27 @@
 package com.defri.bookreflect.presentation.auth
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import com.defri.bookreflect.core.common.BaseViewModel
+import com.defri.bookreflect.core.common.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class LoginViewModel @Inject constructor() : ViewModel() {
-    private val _uiState = MutableStateFlow<LoginUiState>(LoginUiState.Initial)
-    val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
+class LoginViewModel @Inject constructor() : BaseViewModel<LoginState, LoginEvent>() {
+    override fun initialState(): LoginState = LoginState()
 
-    fun login(email: String, password: String) {
-        viewModelScope.launch {
-            _uiState.value = LoginUiState.Loading
-            // TODO: Implement login logic w repository
+    override fun handleEvent(event: LoginEvent) {
+        when (event) {
+            is LoginEvent.Login -> login(event.email, event.password)
+        }
+    }
+
+    private fun login(email: String, password: String) {
+        launchWithLoading {
             if (validateInput(email, password)) {
-                _uiState.value = LoginUiState.Success
+                // TODO: Implement login logic w repository
+                setState { copy(result = Result.Success(Unit)) }
             } else {
-                _uiState.value = LoginUiState.Error("Invalid email or password")
+                setState { copy(result = Result.Error(Exception("Invalid email or password"))) }
             }
         }
     }
@@ -34,9 +34,10 @@ class LoginViewModel @Inject constructor() : ViewModel() {
     }
 }
 
-sealed class LoginUiState {
-    object Initial : LoginUiState()
-    object Loading : LoginUiState()
-    object Success : LoginUiState()
-    data class Error(val message: String) : LoginUiState()
+data class LoginState(
+    val result: Result<Unit> = Result.Success(Unit)
+)
+
+sealed class LoginEvent {
+    data class Login(val email: String, val password: String) : LoginEvent()
 } 

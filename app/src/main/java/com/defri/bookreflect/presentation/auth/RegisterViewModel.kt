@@ -1,39 +1,43 @@
 package com.defri.bookreflect.presentation.auth
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import com.defri.bookreflect.core.common.BaseViewModel
+import com.defri.bookreflect.core.common.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class RegisterViewModel @Inject constructor() : ViewModel() {
-    private val _uiState = MutableStateFlow<RegisterUiState>(RegisterUiState.Initial)
-    val uiState: StateFlow<RegisterUiState> = _uiState.asStateFlow()
+class RegisterViewModel @Inject constructor() : BaseViewModel<RegisterState, RegisterEvent>() {
+    override fun initialState(): RegisterState = RegisterState()
 
-    fun register(name: String, email: String, password: String, confirmPassword: String) {
-        viewModelScope.launch {
-            _uiState.value = RegisterUiState.Loading
-            
+    override fun handleEvent(event: RegisterEvent) {
+        when (event) {
+            is RegisterEvent.Register -> register(
+                event.name,
+                event.email,
+                event.password,
+                event.confirmPassword
+            )
+        }
+    }
+
+    private fun register(name: String, email: String, password: String, confirmPassword: String) {
+        launchWithLoading {
             when {
                 !validateName(name) -> {
-                    _uiState.value = RegisterUiState.Error("Please enter a valid name")
+                    setState { copy(result = Result.Error(Exception("Please enter a valid name"))) }
                 }
                 !validateEmail(email) -> {
-                    _uiState.value = RegisterUiState.Error("Please enter a valid email")
+                    setState { copy(result = Result.Error(Exception("Please enter a valid email"))) }
                 }
                 !validatePassword(password) -> {
-                    _uiState.value = RegisterUiState.Error("Password must be at least 6 characters")
+                    setState { copy(result = Result.Error(Exception("Password must be at least 6 characters"))) }
                 }
                 password != confirmPassword -> {
-                    _uiState.value = RegisterUiState.Error("Passwords do not match")
+                    setState { copy(result = Result.Error(Exception("Passwords do not match"))) }
                 }
                 else -> {
                     // TODO: Implement registration logic w repository
-                    _uiState.value = RegisterUiState.Success
+                    setState { copy(result = Result.Success(Unit)) }
                 }
             }
         }
@@ -52,9 +56,15 @@ class RegisterViewModel @Inject constructor() : ViewModel() {
     }
 }
 
-sealed class RegisterUiState {
-    object Initial : RegisterUiState()
-    object Loading : RegisterUiState()
-    object Success : RegisterUiState()
-    data class Error(val message: String) : RegisterUiState()
+data class RegisterState(
+    val result: Result<Unit> = Result.Success(Unit)
+)
+
+sealed class RegisterEvent {
+    data class Register(
+        val name: String,
+        val email: String,
+        val password: String,
+        val confirmPassword: String
+    ) : RegisterEvent()
 } 

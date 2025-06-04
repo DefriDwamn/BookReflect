@@ -1,23 +1,48 @@
 package com.defri.bookreflect.presentation.home
 
-import androidx.lifecycle.ViewModel
+import com.defri.bookreflect.core.common.BaseViewModel
+import com.defri.bookreflect.core.common.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 
 @HiltViewModel
-class HomeViewModel @Inject constructor() : ViewModel() {
-    private val _uiState = MutableStateFlow(HomeUiState())
-    val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
-    // TODO: Add methods to get and update progress, MAYBE recent books, bla-bla...
+class HomeViewModel @Inject constructor() : BaseViewModel<HomeState, HomeEvent>() {
+    override fun initialState(): HomeState = HomeState()
+
+    override fun handleEvent(event: HomeEvent) {
+        when (event) {
+            is HomeEvent.LoadData -> loadData()
+        }
+    }
+
+    private fun loadData() {
+        launchWithLoading {
+            // TODO: Implement data loading logic w repository
+            setState { 
+                copy(
+                    result = Result.Success(
+                        HomeData(
+                            readingProgress = 0.7f,
+                            currentBook = "Current Book",
+                            recentBooks = emptyList()
+                        )
+                    )
+                )
+            }
+        }
+    }
 }
 
-data class HomeUiState(
+data class HomeState(
+    val result: Result<HomeData> = Result.Success(HomeData())
+)
+
+data class HomeData(
     val readingProgress: Float = 0f,
     val currentBook: String = "",
-    val recentBooks: List<String> = emptyList(),
-    val isLoading: Boolean = false,
-    val error: String? = null
-) 
+    val recentBooks: List<String> = emptyList()
+)
+
+sealed class HomeEvent {
+    object LoadData : HomeEvent()
+} 
