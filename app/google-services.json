@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "437655135392",
+    "project_id": "bookreflect-d2915",
+    "storage_bucket": "bookreflect-d2915.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:437655135392:android:140e850c63b9a8454f55c5",
+        "android_client_info": {
+          "package_name": "com.defri.bookreflect"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "437655135392-gkp7mfk70rgeb844ar17cvjvgbbmb82h.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCpts09O9pFoSg8QA75vULOtoFdAyZmtFY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "437655135392-gkp7mfk70rgeb844ar17cvjvgbbmb82h.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
