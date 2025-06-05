@@ -2,6 +2,7 @@ package com.defri.bookreflect.core.common
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.defri.bookreflect.presentation.auth.AuthState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,9 +23,12 @@ abstract class BaseViewModel<State, Event> : ViewModel() {
     protected fun launchWithLoading(block: suspend () -> Unit) {
         viewModelScope.launch {
             try {
+                setState { (this as? AuthState)?.copy(isLoading = true) as? State ?: this }
                 block()
             } catch (e: Exception) {
-                // Handle error
+                setState { (this as? AuthState)?.copy(error = e.message) as? State ?: this }
+            } finally {
+                setState { (this as? AuthState)?.copy(isLoading = false) as? State ?: this }
             }
         }
     }
