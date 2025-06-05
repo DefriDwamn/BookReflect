@@ -2,12 +2,16 @@ package com.defri.bookreflect.presentation.auth
 
 import com.defri.bookreflect.core.common.BaseViewModel
 import com.defri.bookreflect.core.common.Result
+import com.defri.bookreflect.domain.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
-class RegisterViewModel @Inject constructor() : BaseViewModel<RegisterState, RegisterEvent>() {
-    override fun initialState(): RegisterState = RegisterState()
+class RegisterViewModel @Inject constructor(
+    private val authRepository: AuthRepository
+) : BaseViewModel<AuthState, RegisterEvent>() {
+
+    override fun initialState(): AuthState = AuthState()
 
     override fun handleEvent(event: RegisterEvent) {
         when (event) {
@@ -22,22 +26,31 @@ class RegisterViewModel @Inject constructor() : BaseViewModel<RegisterState, Reg
 
     private fun register(name: String, email: String, password: String, confirmPassword: String) {
         launchWithLoading {
+            setState { copy(isLoading = true, error = null) }
+
             when {
                 !validateName(name) -> {
-                    setState { copy(result = Result.Error(Exception("Please enter a valid name"))) }
+                    setState { copy(error = "Invalid name", isLoading = false) }
                 }
                 !validateEmail(email) -> {
-                    setState { copy(result = Result.Error(Exception("Please enter a valid email"))) }
+                    setState { copy(error = "Invalid email", isLoading = false) }
                 }
                 !validatePassword(password) -> {
-                    setState { copy(result = Result.Error(Exception("Password must be at least 6 characters"))) }
+                    setState { copy(error = "Password too short", isLoading = false) }
                 }
                 password != confirmPassword -> {
-                    setState { copy(result = Result.Error(Exception("Passwords do not match"))) }
+                    setState { copy(error = "Passwords don't match", isLoading = false) }
                 }
                 else -> {
-                    // TODO: Implement registration logic w repository
-                    setState { copy(result = Result.Success(Unit)) }
+                    when (val result = authRepository.register(name, email, password)) {
+                        is Result.Success -> {
+                            setState { copy(isAuthenticated = true, isLoading = false) }
+                        }
+                        is Result.Error -> {
+                            setState { copy(error = result.exception.message, isLoading = false) }
+                        }
+                        else -> {}
+                    }
                 }
             }
         }
@@ -55,10 +68,6 @@ class RegisterViewModel @Inject constructor() : BaseViewModel<RegisterState, Reg
         return password.isNotBlank() && password.length >= 6
     }
 }
-
-data class RegisterState(
-    val result: Result<Unit> = Result.Success(Unit)
-)
 
 sealed class RegisterEvent {
     data class Register(

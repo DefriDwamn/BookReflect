@@ -2,12 +2,16 @@ package com.defri.bookreflect.presentation.auth
 
 import com.defri.bookreflect.core.common.BaseViewModel
 import com.defri.bookreflect.core.common.Result
+import com.defri.bookreflect.domain.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
-class LoginViewModel @Inject constructor() : BaseViewModel<LoginState, LoginEvent>() {
-    override fun initialState(): LoginState = LoginState()
+class LoginViewModel @Inject constructor(
+    private val authRepository: AuthRepository
+) : BaseViewModel<AuthState, LoginEvent>() {
+
+    override fun initialState(): AuthState = AuthState()
 
     override fun handleEvent(event: LoginEvent) {
         when (event) {
@@ -17,26 +21,31 @@ class LoginViewModel @Inject constructor() : BaseViewModel<LoginState, LoginEven
 
     private fun login(email: String, password: String) {
         launchWithLoading {
+            setState { copy(isLoading = true, error = null) }
+
             if (validateInput(email, password)) {
-                // TODO: Implement login logic w repository
-                setState { copy(result = Result.Success(Unit)) }
+                when (val result = authRepository.login(email, password)) {
+                    is Result.Success -> {
+                        setState { copy(isAuthenticated = true, isLoading = false) }
+                    }
+                    is Result.Error -> {
+                        setState { copy(error = result.exception.message, isLoading = false) }
+                    }
+                    else -> {}
+                }
             } else {
-                setState { copy(result = Result.Error(Exception("Invalid email or password"))) }
+                setState { copy(error = "Invalid input", isLoading = false) }
             }
         }
     }
 
     private fun validateInput(email: String, password: String): Boolean {
-        return email.isNotBlank() && 
-               email.contains("@") && 
-               password.isNotBlank() && 
+        return email.isNotBlank() &&
+               email.contains("@") &&
+               password.isNotBlank() &&
                password.length >= 6
     }
 }
-
-data class LoginState(
-    val result: Result<Unit> = Result.Success(Unit)
-)
 
 sealed class LoginEvent {
     data class Login(val email: String, val password: String) : LoginEvent()

@@ -14,7 +14,7 @@ abstract class BaseViewModel<State, Event> : ViewModel() {
     abstract fun initialState(): State
     abstract fun handleEvent(event: Event)
 
-    protected fun setState(reduce: State.() -> State) {
+    fun setState(reduce: State.() -> State) {
         val newState = state.value.reduce()
         _state.value = newState
     }
