@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.defri.bookreflect" />
+                  <option name="mobileSdkAppId" value="1:437655135392:android:140e850c63b9a8454f55c5" />
+                  <option name="projectId" value="bookreflect-d2915" />
+                  <option name="projectNumber" value="437655135392" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
