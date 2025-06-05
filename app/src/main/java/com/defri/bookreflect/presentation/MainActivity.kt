@@ -48,7 +48,7 @@ fun BookReflectApp() {
                     LoginScreen(
                         onNavigateToRegister = { navController.navigate("register") },
                         onLoginSuccess = { navController.navigate("home") { popUpTo(0) } },
-                        onNavigateToForgotPassword = { /* TODO */ }
+                        onNavigateToForgotPassword = { navController.navigate("forgot_password") }
                     )
                 }
                 composable("register") {
@@ -64,8 +64,7 @@ fun BookReflectApp() {
                 }
                 composable("forgot_password") {
                     ForgotPasswordScreen(
-                        onNavigateBack = { navController.popBackStack() },
-                        onResetSuccess = { navController.popBackStack() }
+                        onNavigateBack = { navController.popBackStack() }
                     )
                 }
                 composable("profile") {

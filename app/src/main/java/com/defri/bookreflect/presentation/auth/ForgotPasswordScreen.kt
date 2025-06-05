@@ -15,22 +15,35 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ForgotPasswordScreen(
+    viewModel: ForgotPasswordViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit,
-    onResetSuccess: () -> Unit
 ) {
+    val state by viewModel.state.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+
     var email by remember { mutableStateOf("") }
-    var isResetSent by remember { mutableStateOf(false) }
+
+    LaunchedEffect(state.error) {
+        state.error?.let { error ->
+            snackbarHostState.showSnackbar(error)
+            viewModel.setState { copy(error = null) }
+        }
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Forgot Password") },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
+                    IconButton(
+                        onClick = onNavigateBack,
+                        enabled = !state.isLoading
+                    ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back"
@@ -38,7 +51,8 @@ fun ForgotPasswordScreen(
                     }
                 }
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -47,7 +61,7 @@ fun ForgotPasswordScreen(
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (!isResetSent) {
+            if (!state.isResetSent) {
                 // Reset Password Form
                 Text(
                     text = "Reset Password",
@@ -78,6 +92,7 @@ fun ForgotPasswordScreen(
                             contentDescription = "Email Icon"
                         )
                     },
+                    enabled = !state.isLoading,
                     modifier = Modifier.fillMaxWidth(),
                     shape = MaterialTheme.shapes.medium,
                     keyboardOptions = KeyboardOptions(
@@ -90,16 +105,21 @@ fun ForgotPasswordScreen(
                 Spacer(modifier = Modifier.height(32.dp))
 
                 Button(
-                    onClick = { isResetSent = true },
+                    onClick = { viewModel.handleEvent(ForgotPasswordEvent.SendResetLink(email)) },
+                    enabled = !state.isLoading && email.isNotBlank(),
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
                     shape = MaterialTheme.shapes.medium
                 ) {
-                    Text(
-                        text = "Send Reset Link",
-                        fontSize = 18.sp
-                    )
+                    if (state.isLoading) {
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary)
+                    } else {
+                        Text(
+                            text = "Send Reset Link",
+                            fontSize = 18.sp
+                        )
+                    }
                 }
             } else {
                 // Success State

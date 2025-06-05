@@ -2,11 +2,14 @@ package com.defri.bookreflect.presentation.auth
 
 import com.defri.bookreflect.core.common.BaseViewModel
 import com.defri.bookreflect.core.common.Result
+import com.defri.bookreflect.domain.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
-class ForgotPasswordViewModel @Inject constructor() : BaseViewModel<ForgotPasswordState, ForgotPasswordEvent>() {
+class ForgotPasswordViewModel @Inject constructor(
+    private val authRepository: AuthRepository
+) : BaseViewModel<ForgotPasswordState, ForgotPasswordEvent>() {
     override fun initialState(): ForgotPasswordState = ForgotPasswordState()
 
     override fun handleEvent(event: ForgotPasswordEvent) {
@@ -17,11 +20,23 @@ class ForgotPasswordViewModel @Inject constructor() : BaseViewModel<ForgotPasswo
 
     private fun sendResetLink(email: String) {
         launchWithLoading {
-            if (validateEmail(email)) {
-                // TODO: Implement password reset logic w repository
-                setState { copy(result = Result.Success(Unit)) }
-            } else {
-                setState { copy(result = Result.Error(Exception("Please enter a valid email address"))) }
+            setState { copy(isLoading = true, error = null) }
+
+            when {
+                !validateEmail(email) -> {
+                    setState { copy(error = "Please enter a valid email", isLoading = false) }
+                }
+                else -> {
+                    when (val result = authRepository.sendPasswordResetEmail(email)) {
+                        is Result.Success -> {
+                            setState { copy(isResetSent = true, isLoading = false) }
+                        }
+                        is Result.Error -> {
+                            setState { copy(error = result.exception.message, isLoading = false) }
+                        }
+                        else -> {}
+                    }
+                }
             }
         }
     }
@@ -32,9 +47,11 @@ class ForgotPasswordViewModel @Inject constructor() : BaseViewModel<ForgotPasswo
 }
 
 data class ForgotPasswordState(
-    val result: Result<Unit> = Result.Success(Unit)
+    val isResetSent: Boolean = false,
+    val isLoading: Boolean = false,
+    val error: String? = null
 )
 
 sealed class ForgotPasswordEvent {
     data class SendResetLink(val email: String) : ForgotPasswordEvent()
-} 
+}
