@@ -8,7 +8,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavHostController
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -25,73 +25,66 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            BookReflectTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    MainNavigation()
-                }
-            }
+            BookReflectApp()
         }
     }
 }
 
 @Composable
-fun MainNavigation() {
-    val navController = rememberNavController()
-    
-    NavHost(
-        navController = navController,
-        startDestination = "login"
-    ) {
-        composable("login") {
-            LoginScreen(
-                onNavigateToRegister = { navController.navigate("register") },
-                onNavigateToForgotPassword = { navController.navigate("forgot_password") },
-                onLoginSuccess = { navController.navigate("home") {
-                    popUpTo("login") { inclusive = true }
-                }}
-            )
-        }
-        
-        composable("register") {
-            RegisterScreen(
-                onNavigateToLogin = { navController.popBackStack() },
-                onRegisterSuccess = { navController.navigate("home") {
-                    popUpTo("login") { inclusive = true }
-                }}
-            )
-        }
-        
-        composable("forgot_password") {
-            ForgotPasswordScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onResetSuccess = { navController.popBackStack() }
-            )
-        }
-        
-        composable("home") {
-            HomeScreen(
-                onNavigateToProfile = { navController.navigate("profile") }
-            )
-        }
-        
-        composable("profile") {
-            ProfileScreen(
-                onNavigateBack = { 
-                    if (navController.previousBackStackEntry != null) {
-                        navController.popBackStack()
-                    } else {
-                        navController.navigate("home") {
-                            popUpTo("profile") { inclusive = true }
-                        }
-                    }
-                },
-                onLogout = { navController.navigate("login") {
-                    popUpTo("home") { inclusive = true }
-                }}
-            )
+fun BookReflectApp() {
+    BookReflectTheme {
+        val appViewModel: AppViewModel = hiltViewModel()
+        val navController = rememberNavController()
+
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            NavHost(
+                navController = navController,
+                startDestination = if (appViewModel.isAuthenticated) "home" else "login"
+            ) {
+                composable("login") {
+                    LoginScreen(
+                        onNavigateToRegister = { navController.navigate("register") },
+                        onLoginSuccess = { navController.navigate("home") { popUpTo(0) } },
+                        onNavigateToForgotPassword = { /* TODO */ }
+                    )
+                }
+                composable("register") {
+                    RegisterScreen(
+                        onNavigateToLogin = { navController.popBackStack() },
+                        onRegisterSuccess = { navController.navigate("home") { popUpTo(0) } }
+                    )
+                }
+                composable("home") {
+                    HomeScreen(
+                        onNavigateToProfile = { navController.navigate("profile") }
+                    )
+                }
+                composable("forgot_password") {
+                    ForgotPasswordScreen(
+                        onNavigateBack = { navController.popBackStack() },
+                        onResetSuccess = { navController.popBackStack() }
+                    )
+                }
+                composable("profile") {
+                    ProfileScreen(
+                        onNavigateBack = {
+                            if (navController.previousBackStackEntry != null) {
+                                navController.popBackStack()
+                            } else {
+                                navController.navigate("home") {
+                                    popUpTo("profile") { inclusive = true }
+                                }
+                            }
+                        },
+                        onLogout = { navController.navigate("login") {
+                            popUpTo("home") { inclusive = true }
+                        }}
+                    )
+                }
+            }
         }
     }
-} 
+}
