@@ -22,5 +22,9 @@ class FirebaseAuthSource @Inject constructor() {
         return authResult.user ?: throw Exception("User not created")
     }
 
+    suspend fun sendPasswordResetEmail(email: String) {
+        auth.sendPasswordResetEmail(email).await()
+    }
+
     fun logout() = auth.signOut()
 }

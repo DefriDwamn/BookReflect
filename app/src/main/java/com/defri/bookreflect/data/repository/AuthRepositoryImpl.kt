@@ -32,5 +32,14 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun sendPasswordResetEmail(email: String): Result<Unit> {
+        return try {
+            firebaseAuthSource.sendPasswordResetEmail(email)
+            Result.Success(Unit)
+        } catch (e: Exception) {
+            Result.Error(e)
+        }
+    }
+
     override fun getCurrentUser(): FirebaseUser? = firebaseAuthSource.currentUser
 }
