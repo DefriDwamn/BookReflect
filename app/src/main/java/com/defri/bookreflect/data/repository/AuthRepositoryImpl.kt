@@ -1,12 +1,9 @@
 package com.defri.bookreflect.data.repository
 
-import com.defri.bookreflect.core.common.Result
+import com.defri.bookreflect.core.Result
 import com.defri.bookreflect.data.remote.FirebaseAuthSource
 import com.defri.bookreflect.domain.repository.AuthRepository
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.firestore.FieldValue
-import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 class AuthRepositoryImpl @Inject constructor(

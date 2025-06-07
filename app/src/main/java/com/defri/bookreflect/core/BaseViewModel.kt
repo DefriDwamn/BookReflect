@@ -1,4 +1,4 @@
-package com.defri.bookreflect.core.common
+package com.defri.bookreflect.core
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

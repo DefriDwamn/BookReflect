@@ -1,7 +1,7 @@
 package com.defri.bookreflect.presentation.profile
 
-import com.defri.bookreflect.core.common.BaseViewModel
-import com.defri.bookreflect.core.common.Result
+import com.defri.bookreflect.core.BaseViewModel
+import com.defri.bookreflect.core.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 

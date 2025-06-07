@@ -1,4 +1,4 @@
-package com.defri.bookreflect.core.common
+package com.defri.bookreflect.core
 
 sealed class Result<out R> {
     object Idle : Result<Nothing>()

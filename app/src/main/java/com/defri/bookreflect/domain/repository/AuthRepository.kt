@@ -1,6 +1,6 @@
 package com.defri.bookreflect.domain.repository
 
-import com.defri.bookreflect.core.common.Result
+import com.defri.bookreflect.core.Result
 import com.google.firebase.auth.FirebaseUser
 
 interface AuthRepository {
