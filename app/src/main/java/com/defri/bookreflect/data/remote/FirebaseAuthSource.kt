@@ -1,5 +1,6 @@
 package com.defri.bookreflect.data.remote
 
+import com.defri.bookreflect.presentation.profile.ProfileData
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
@@ -35,6 +36,28 @@ class FirebaseAuthSource @Inject constructor(
 
     suspend fun sendPasswordResetEmail(email: String) {
         auth.sendPasswordResetEmail(email).await()
+    }
+
+    suspend fun updateUserName(name: String) {
+        val userId = auth.currentUser?.uid
+            ?: throw Exception("User not authenticated")
+        firestore.collection("users")
+            .document(userId)
+            .update("name", name)
+            .await()
+    }
+
+    suspend fun getUserProfile(): ProfileData {
+        val user = auth.currentUser
+            ?: throw Exception("User not authenticated")
+        val document = firestore.collection("users")
+            .document(user.uid)
+            .get()
+            .await()
+        // TODO: maybe use other template for name and email
+        val name = document.getString("name") ?: "No name"
+        val email = user.email ?: "No email"
+        return ProfileData(name, email, null)
     }
 
     fun logout() = auth.signOut()
