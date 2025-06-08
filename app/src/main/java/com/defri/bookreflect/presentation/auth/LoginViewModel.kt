@@ -20,21 +20,20 @@ class LoginViewModel @Inject constructor(
     }
 
     private fun login(email: String, password: String) {
-        launchWithLoading {
-            setState { copy(isLoading = true, error = null) }
+        launchWithLoading(
+            onStart = { copy(isLoading = true, error = null) },
+            onError = { copy(error = it.message, isLoading = false) },
+            onComplete = { copy(isLoading = false) }
+        ) {
+            if (!validateInput(email, password)) {
+                setState { copy(error = "Invalid input") }
+                return@launchWithLoading
+            }
 
-            if (validateInput(email, password)) {
-                when (val result = authRepository.login(email, password)) {
-                    is Result.Success -> {
-                        setState { copy(isAuthenticated = true, isLoading = false) }
-                    }
-                    is Result.Error -> {
-                        setState { copy(error = result.exception.message, isLoading = false) }
-                    }
-                    else -> {}
-                }
-            } else {
-                setState { copy(error = "Invalid input", isLoading = false) }
+            when (val result = authRepository.login(email, password)) {
+                is Result.Success -> setState { copy(isAuthenticated = true) }
+                is Result.Error -> setState { copy(error = result.exception.message) }
+                else -> {}
             }
         }
     }

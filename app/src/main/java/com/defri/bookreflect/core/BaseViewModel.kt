@@ -20,15 +20,20 @@ abstract class BaseViewModel<State, Event> : ViewModel() {
         _state.value = newState
     }
 
-    protected fun launchWithLoading(block: suspend () -> Unit) {
+    protected fun launchWithLoading(
+        onStart: State.() -> State = { this },
+        onError: State.(Throwable) -> State = { this },
+        onComplete: State.() -> State = { this },
+        block: suspend () -> Unit
+    ) {
         viewModelScope.launch {
+            setState(onStart)
             try {
-                setState { (this as? AuthState)?.copy(isLoading = true) as? State ?: this }
                 block()
-            } catch (e: Exception) {
-                setState { (this as? AuthState)?.copy(error = e.message) as? State ?: this }
+            } catch (e: Throwable) {
+                setState { onError(e) }
             } finally {
-                setState { (this as? AuthState)?.copy(isLoading = false) as? State ?: this }
+                setState(onComplete)
             }
         }
     }

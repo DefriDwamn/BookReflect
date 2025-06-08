@@ -19,24 +19,20 @@ class ForgotPasswordViewModel @Inject constructor(
     }
 
     private fun sendResetLink(email: String) {
-        launchWithLoading {
-            setState { copy(isLoading = true, error = null) }
+        launchWithLoading(
+            onStart = { copy(isLoading = true, error = null) },
+            onError = { copy(error = it.message, isLoading = false) },
+            onComplete = { copy(isLoading = false) }
+        ) {
+            if (!validateEmail(email)) {
+                setState { copy(error = "Please enter a valid email") }
+                return@launchWithLoading
+            }
 
-            when {
-                !validateEmail(email) -> {
-                    setState { copy(error = "Please enter a valid email", isLoading = false) }
-                }
-                else -> {
-                    when (val result = authRepository.sendPasswordResetEmail(email)) {
-                        is Result.Success -> {
-                            setState { copy(isResetSent = true, isLoading = false) }
-                        }
-                        is Result.Error -> {
-                            setState { copy(error = result.exception.message, isLoading = false) }
-                        }
-                        else -> {}
-                    }
-                }
+            when (val result = authRepository.sendPasswordResetEmail(email)) {
+                is Result.Success -> setState { copy(isResetSent = true) }
+                is Result.Error -> setState { copy(error = result.exception.message) }
+                else -> {}
             }
         }
     }

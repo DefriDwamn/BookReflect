@@ -25,30 +25,20 @@ class RegisterViewModel @Inject constructor(
     }
 
     private fun register(name: String, email: String, password: String, confirmPassword: String) {
-        launchWithLoading {
-            setState { copy(isLoading = true, error = null) }
-
+        launchWithLoading(
+            onStart = { copy(isLoading = true, error = null) },
+            onError = { copy(error = it.message, isLoading = false) },
+            onComplete = { copy(isLoading = false) }
+        ) {
             when {
-                !validateName(name) -> {
-                    setState { copy(error = "Invalid name", isLoading = false) }
-                }
-                !validateEmail(email) -> {
-                    setState { copy(error = "Invalid email", isLoading = false) }
-                }
-                !validatePassword(password) -> {
-                    setState { copy(error = "Password too short", isLoading = false) }
-                }
-                password != confirmPassword -> {
-                    setState { copy(error = "Passwords don't match", isLoading = false) }
-                }
+                !validateName(name) -> setState { copy(error = "Invalid name") }
+                !validateEmail(email) -> setState { copy(error = "Invalid email") }
+                !validatePassword(password) -> setState { copy(error = "Password too short") }
+                password != confirmPassword -> setState { copy(error = "Passwords don't match") }
                 else -> {
                     when (val result = authRepository.register(name, email, password)) {
-                        is Result.Success -> {
-                            setState { copy(isAuthenticated = true, isLoading = false) }
-                        }
-                        is Result.Error -> {
-                            setState { copy(error = result.exception.message, isLoading = false) }
-                        }
+                        is Result.Success -> setState { copy(isAuthenticated = true) }
+                        is Result.Error -> setState { copy(error = result.exception.message) }
                         else -> {}
                     }
                 }
