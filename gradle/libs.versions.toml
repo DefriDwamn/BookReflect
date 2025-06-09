@@ -1,5 +1,6 @@
 [versions]
 agp = "8.8.2"
+composeVersion = "1.0.0-beta01"
 dagger = "2.56.2"
 firebaseBom = "33.15.0"
 hiltNavigationCompose = "1.2.0"
@@ -29,6 +30,7 @@ firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-auth = { module = "com.google.firebase:firebase-auth" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 firebase-firestore = { module = "com.google.firebase:firebase-firestore" }
+glide-compose = { module = "com.github.bumptech.glide:compose", version.ref = "composeVersion" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "dagger" }
 hilt-android-gradle-plugin = { module = "com.google.dagger:hilt-android-gradle-plugin", version.ref = "dagger" }
 hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "dagger" }

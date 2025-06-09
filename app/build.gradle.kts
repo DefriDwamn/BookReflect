@@ -54,6 +54,8 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.squareup.converter.moshi)
 
+    implementation (libs.glide.compose)
+
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.auth)
