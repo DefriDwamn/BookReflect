@@ -1,5 +1,9 @@
 package com.defri.bookreflect.presentation.profile
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -10,10 +14,19 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import kotlinx.coroutines.delay
+import kotlin.random.Random
+
+private val color = Color(
+    Random.nextFloat(),
+    Random.nextFloat(),
+    Random.nextFloat()
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -101,14 +114,40 @@ fun ProfileScreen(
                     shape = MaterialTheme.shapes.medium,
                     color = MaterialTheme.colorScheme.primaryContainer
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = "Profile Picture",
-                        modifier = Modifier
-                            .size(80.dp)
-                            .padding(16.dp),
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    val fisrtl = name.first().toString();
+                    val randomColor = remember { mutableStateOf(
+                        Color(Random.nextFloat(), Random.nextFloat(), Random.nextFloat()))
+                    }
+                    val animatedColor by animateColorAsState(
+                        randomColor.value,
+                        infiniteRepeatable(
+                            animation = tween(1000),
+                            repeatMode = RepeatMode.Reverse
+                        )
                     )
+                    LaunchedEffect(Unit) {
+                        while (true) {
+                            delay(1000)
+                            randomColor.value = Color(
+                                Random.nextFloat(),
+                                Random.nextFloat(),
+                                Random.nextFloat()
+                            )
+                        }
+                    }
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Text(
+                            text = fisrtl,
+                            style = MaterialTheme.typography.displayLarge,
+                            color = animatedColor,
+                            modifier = Modifier
+                                .size(120.dp)
+                                .wrapContentSize(Alignment.Center)
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -162,24 +201,6 @@ fun ProfileScreen(
                                 Icon(
                                     imageVector = Icons.Default.Book,
                                     contentDescription = "Reading Preferences"
-                                )
-                            },
-                            trailingContent = {
-                                Icon(
-                                    imageVector = Icons.Default.ChevronRight,
-                                    contentDescription = "Navigate"
-                                )
-                            }
-                        )
-
-                        HorizontalDivider()
-
-                        ListItem(
-                            headlineContent = { Text("Notifications") },
-                            leadingContent = {
-                                Icon(
-                                    imageVector = Icons.Default.Notifications,
-                                    contentDescription = "Notifications"
                                 )
                             },
                             trailingContent = {
