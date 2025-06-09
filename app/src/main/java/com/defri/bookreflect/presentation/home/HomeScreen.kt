@@ -6,17 +6,21 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.defri.bookreflect.R
+import com.defri.bookreflect.presentation.books.BooksScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    onNavigateToProfile: () -> Unit
+    onNavigateToProfile: () -> Unit,
+    onNavigateToAddBook: () -> Unit,
+    onNavigateToBookDetail: (String) -> Unit
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
     val tabs = listOf(
@@ -29,10 +33,25 @@ fun HomeScreen(
         topBar = {
             TopAppBar(
                 title = {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 56.dp)
+                    ) {
+                        Text(
+                            text = tabs[selectedTab].title,
+                            style = MaterialTheme.typography.titleLarge,
+                            modifier = Modifier.align(Alignment.Center)
+                        )
+                    }
+                },
+                navigationIcon = {
                     Image(
                         painter = painterResource(id = R.drawable.logo_background),
                         contentDescription = "BookReflect Logo",
-                        modifier = Modifier.size(40.dp),
+                        modifier = Modifier
+                            .size(36.dp)
+                            .padding(start = 16.dp),
                         contentScale = ContentScale.Fit
                     )
                 },
@@ -66,7 +85,10 @@ fun HomeScreen(
         ) {
             when (selectedTab) {
                 0 -> HomeContent()
-                1 -> BooksContent()
+                1 -> BooksScreen(
+                    onNavigateToAddBook = onNavigateToAddBook,
+                    onNavigateToBookDetail = onNavigateToBookDetail
+                )
                 2 -> MoodContent()
             }
         }
@@ -119,7 +141,6 @@ private fun HomeContent() {
             modifier = Modifier.padding(vertical = 8.dp)
         )
         
-        // Placeholder for recent books list
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = MaterialTheme.shapes.medium
@@ -129,38 +150,6 @@ private fun HomeContent() {
             ) {
                 Text(
                     text = "No recent books yet",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun BooksContent() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        Text(
-            text = "Your Books",
-            style = MaterialTheme.typography.headlineMedium
-        )
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        // Placeholder for books list
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = MaterialTheme.shapes.medium
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Text(
-                    text = "No books added yet",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                 )
