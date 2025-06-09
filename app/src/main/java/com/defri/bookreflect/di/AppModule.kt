@@ -1,8 +1,12 @@
 package com.defri.bookreflect.di
 
 import com.defri.bookreflect.data.remote.FirebaseAuthSource
+import com.defri.bookreflect.data.remote.FirestoreBookSource
+import com.defri.bookreflect.data.remote.GoogleBooksService
 import com.defri.bookreflect.data.repository.AuthRepositoryImpl
+import com.defri.bookreflect.data.repository.BookRepositoryImpl
 import com.defri.bookreflect.domain.repository.AuthRepository
+import com.defri.bookreflect.domain.repository.BookRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -12,6 +16,8 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import retrofit2.Retrofit
+import retrofit2.converter.moshi.MoshiConverterFactory
 import javax.inject.Singleton
 
 @Module
@@ -38,4 +44,24 @@ object AppModule {
     fun provideAuthRepository(
         firebaseAuthSource: FirebaseAuthSource
     ): AuthRepository = AuthRepositoryImpl(firebaseAuthSource)
+
+    @Provides
+    @Singleton
+    fun provideFirestoreBookSource(firestore: FirebaseFirestore): FirestoreBookSource =
+        FirestoreBookSource(firestore)
+
+    @Provides
+    @Singleton
+    fun provideGoogleBooksService(): GoogleBooksService =
+        Retrofit.Builder()
+            .baseUrl("https://www.googleapis.com/books/v1/")
+            .addConverterFactory(MoshiConverterFactory.create())
+            .build()
+            .create(GoogleBooksService::class.java)
+
+    @Provides
+    @Singleton
+    fun provideBookRepository(
+        firestoreBookSource: FirestoreBookSource,
+    ): BookRepository = BookRepositoryImpl(firestoreBookSource)
 }
