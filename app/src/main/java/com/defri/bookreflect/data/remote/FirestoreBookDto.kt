@@ -1,18 +1,13 @@
-package com.defri.bookreflect.data.model
+package com.defri.bookreflect.data.remote
 
 import com.google.firebase.firestore.DocumentId
 
-enum class BookStatus {
-    ADDED,
-    COMPLETED
-}
-
-data class Book(
+data class FirestoreBookDto(
     @DocumentId
     val id: String = "",
     val title: String = "",
     val author: String = "",
     val description: String = "",
     val coverUrl: String = "",
-    val status: BookStatus = BookStatus.ADDED
+    val status: String = ""
 )

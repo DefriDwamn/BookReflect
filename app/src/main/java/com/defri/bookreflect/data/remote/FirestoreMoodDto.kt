@@ -1,8 +1,8 @@
-package com.defri.bookreflect.data.model
+package com.defri.bookreflect.data.remote
 import com.google.firebase.firestore.DocumentId
 import com.google.firebase.firestore.PropertyName
 
-data class Mood(
+data class FirestoreMoodDto(
     @DocumentId
     val id: String = "",
     val bookId: String = "",
