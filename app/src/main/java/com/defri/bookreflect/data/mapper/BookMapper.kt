@@ -4,6 +4,7 @@ import com.defri.bookreflect.data.local.BookEntity
 import com.defri.bookreflect.data.remote.FirestoreBookDto
 import com.defri.bookreflect.domain.model.Book
 import com.defri.bookreflect.domain.model.BookStatus
+import java.util.UUID
 
 object BookMapper {
     fun toDto(domain: Book): FirestoreBookDto {
@@ -29,7 +30,7 @@ object BookMapper {
     }
     fun toEntity(domain: Book): BookEntity {
         return BookEntity(
-            domain.id,
+            domain.id.ifBlank { UUID.randomUUID().toString() },
             domain.isLocal,
             domain.title,
             domain.author,
