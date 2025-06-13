@@ -10,6 +10,6 @@ interface MoodDao {
     @Update
     suspend fun update(mood: MoodEntity)
 
-    @Query("SELECT * FROM books")
+    @Query("SELECT * FROM moods")
     suspend fun getAll(): List<BookEntity>
 }
