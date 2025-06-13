@@ -13,7 +13,7 @@ object BookMapper {
             domain.author,
             domain.description,
             domain.coverUrl,
-            domain.status.name
+            domain.status?.name ?: ""
         )
     }
     fun fromDto(dto: FirestoreBookDto): Book {
@@ -24,7 +24,7 @@ object BookMapper {
             dto.author,
             dto.description,
             dto.coverUrl,
-            BookStatus.valueOf(dto.status),
+            if (dto.status.isBlank()) null else BookStatus.valueOf(dto.status),
         )
     }
     fun toEntity(domain: Book): BookEntity {
@@ -35,7 +35,7 @@ object BookMapper {
             domain.author,
             domain.description,
             domain.coverUrl,
-            domain.status.name
+            domain.status?.name ?: ""
         )
     }
     fun fromEntity(entity: BookEntity): Book {
@@ -46,7 +46,7 @@ object BookMapper {
             entity.author,
             entity.description,
             entity.coverUrl,
-            BookStatus.valueOf(entity.status)
+            if (entity.status.isBlank()) null else BookStatus.valueOf(entity.status),
         )
     }
 }
