@@ -15,27 +15,30 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.defri.bookreflect.data.model.Book
-import com.defri.bookreflect.data.model.BookStatus
+import com.defri.bookreflect.domain.model.Book
+import com.defri.bookreflect.domain.model.BookStatus
 import com.defri.bookreflect.presentation.books.components.BookCard
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BooksScreen(
     viewModel: BooksViewModel = hiltViewModel(),
-    onNavigateToAddBook: () -> Unit,
-    onNavigateToBookDetail: (String) -> Unit
-) {
+    onNavigateToBookDetail: (String) -> Unit,
+    ) {
     val state by viewModel.state.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
+    var isDialogOpen by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        viewModel.handleEvent(BooksEvent.LoadBooks)
+    }
 
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
-                onClick = onNavigateToAddBook,
+                onClick = { isDialogOpen = true },
                 containerColor = MaterialTheme.colorScheme.primary
             ) {
-                Icon(Icons.Default.Add, "Add Book")
+                Icon(Icons.Default.Add, contentDescription = "Create Book")
             }
         }
     ) { paddingValues ->
@@ -49,15 +52,14 @@ fun BooksScreen(
                         bottom = paddingValues.calculateBottomPadding()
                     )
                 )
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = 16.dp)
         ) {
             TextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
                 placeholder = { Text("Search books...") },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                modifier = Modifier
-                    .fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.Transparent,
@@ -78,22 +80,28 @@ fun BooksScreen(
 
             Box(modifier = Modifier.fillMaxSize()) {
                 when {
-                    state.isLoading -> CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-
+                    state.isLoading -> CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                     filteredBooks.isEmpty() -> EmptyBooksList()
-
                     else -> BooksList(
                         books = filteredBooks,
                         onBookClick = onNavigateToBookDetail,
-                        onStatusChange = { bookId, status ->
-                            viewModel.handleEvent(BooksEvent.UpdateStatus(bookId, status))
+                        onStatusChange = { book, status ->
+                            viewModel.handleEvent(BooksEvent.UpdateStatus(book, status))
                         }
                     )
                 }
             }
         }
+    }
+
+    if (isDialogOpen) {
+        CreateBookDialog(
+            onDismiss = { isDialogOpen = false },
+            onCreateBook = { book ->
+                viewModel.handleEvent(BooksEvent.CreateBook(book))
+                isDialogOpen = false
+            }
+        )
     }
 }
 
@@ -101,7 +109,7 @@ fun BooksScreen(
 private fun BooksList(
     books: List<Book>,
     onBookClick: (String) -> Unit,
-    onStatusChange: (String, BookStatus) -> Unit
+    onStatusChange: (Book, BookStatus) -> Unit
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -112,7 +120,7 @@ private fun BooksList(
             BookCard(
                 book = book,
                 onBookClick = { onBookClick(book.id) },
-                onStatusChange = { status -> onStatusChange(book.id, status) }
+                onStatusChange = { status -> onStatusChange(book, status) }
             )
         }
     }
@@ -134,4 +142,59 @@ private fun EmptyBooksList() {
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
         )
     }
+}
+
+@Composable
+fun CreateBookDialog(
+    onDismiss: () -> Unit,
+    onCreateBook: (Book) -> Unit
+) {
+    var title by remember { mutableStateOf("") }
+    var author by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Create Book") },
+        text = {
+            Column {
+                TextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    label = { Text("Title") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                TextField(
+                    value = author,
+                    onValueChange = { author = it },
+                    label = { Text("Author") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    val book = Book(
+                        id = "",
+                        title = title,
+                        author = author,
+                        isLocal = true,
+                        description = "",
+                        coverUrl = "",
+                        status = BookStatus.ADDED
+                    )
+                    onCreateBook(book)
+                },
+                enabled = title.isNotBlank() && author.isNotBlank()
+            ) {
+                Text("Create")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }

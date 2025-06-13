@@ -3,7 +3,7 @@ package com.defri.bookreflect.presentation.books.components
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.BookmarkAdd
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.*
@@ -16,8 +16,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.defri.bookreflect.R
-import com.defri.bookreflect.data.model.Book
-import com.defri.bookreflect.data.model.BookStatus
+import com.defri.bookreflect.domain.model.Book
+import com.defri.bookreflect.domain.model.BookStatus
 
 @Composable
 fun BookCard(
@@ -45,7 +45,7 @@ fun BookCard(
                 color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.ic_book_placeholder),
+                    imageVector = Icons.Filled.Book,
                     contentDescription = null,
                     modifier = Modifier.padding(12.dp),
                     tint = MaterialTheme.colorScheme.primary
@@ -76,24 +76,22 @@ fun BookCard(
             IconButton(
                 onClick = {
                     val newStatus = when (book.status) {
-                        BookStatus.ADDED -> BookStatus.READING
-                        BookStatus.READING -> BookStatus.COMPLETED
-                        BookStatus.COMPLETED -> BookStatus.ADDED
+                        BookStatus.ADDED -> BookStatus.COMPLETED
+                        null, BookStatus.COMPLETED -> BookStatus.ADDED
                     }
                     onStatusChange(newStatus)
                 }
             ) {
                 Icon(
                     imageVector = when (book.status) {
-                        BookStatus.ADDED -> Icons.Default.BookmarkAdd
-                        BookStatus.READING -> Icons.Default.Bookmark
+                        null, BookStatus.ADDED -> Icons.Default.BookmarkAdd
                         BookStatus.COMPLETED -> Icons.Default.CheckCircle
                     },
                     contentDescription = null,
                     tint = when (book.status) {
                         BookStatus.ADDED -> MaterialTheme.colorScheme.primary
-                        BookStatus.READING -> MaterialTheme.colorScheme.secondary
                         BookStatus.COMPLETED -> MaterialTheme.colorScheme.tertiary
+                        null -> MaterialTheme.colorScheme.secondary
                     }
                 )
             }

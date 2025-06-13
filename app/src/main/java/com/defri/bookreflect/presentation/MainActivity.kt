@@ -60,8 +60,6 @@ fun BookReflectApp() {
                 composable("home") {
                     HomeScreen(
                         onNavigateToProfile = { navController.navigate("profile") },
-                        //TODO: навигация на экран добавления книги
-                        onNavigateToAddBook = {},
                         //TODO: навигация на детали книги
                         onNavigateToBookDetail = { }
                     )

@@ -1,29 +1,35 @@
 package com.defri.bookreflect.presentation.books
 
+import android.content.ContentValues.TAG
+import android.util.Log
 import com.defri.bookreflect.core.BaseViewModel
 import com.defri.bookreflect.core.Result
-import com.defri.bookreflect.data.model.Book
-import com.defri.bookreflect.data.model.BookStatus
-import com.defri.bookreflect.domain.usecase.books.AddBookUseCase
-import com.defri.bookreflect.domain.usecase.books.GetBooksUseCase
+import com.defri.bookreflect.domain.model.Book
+import com.defri.bookreflect.domain.model.BookStatus
+import com.defri.bookreflect.domain.repository.AuthRepository
+import com.defri.bookreflect.domain.usecase.books.CreateBookUseCase
+import com.defri.bookreflect.domain.usecase.books.GetUserBooksUseCase
 import com.defri.bookreflect.domain.usecase.books.UpdateStatusUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlin.math.log
 
 @HiltViewModel
 class BooksViewModel @Inject constructor(
-    private val addBookUseCase: AddBookUseCase,
+    private val createBookUseCase: CreateBookUseCase,
     private val updateStatusUseCase: UpdateStatusUseCase,
-    private val getBooksUseCase: GetBooksUseCase
+    private val getUserBooksUseCase: GetUserBooksUseCase,
+    private val authRepository: AuthRepository
 ) : BaseViewModel<BooksState, BooksEvent>() {
+    private fun getUserId() = authRepository.getCurrentUser()?.uid
 
     override fun initialState(): BooksState = BooksState()
 
     override fun handleEvent(event: BooksEvent) {
         when (event) {
-            is BooksEvent.AddBook -> addBook(event.book)
-            is BooksEvent.UpdateStatus -> updateStatus(event.bookId, event.status)
             BooksEvent.LoadBooks -> loadBooks()
+            is BooksEvent.CreateBook -> createBook(event.book)
+            is BooksEvent.UpdateStatus -> updateStatus(event.book, event.status)
         }
     }
 
@@ -33,7 +39,8 @@ class BooksViewModel @Inject constructor(
             onError = { copy(isLoading = false, error = it.message) },
             onComplete = { copy(isLoading = false) }
         ) {
-            val books = getBooksUseCase()
+            val uid = getUserId() ?: return@launchWithLoading
+            val books = getUserBooksUseCase(uid)
             if (books is Result.Success && books.data != null) {
                 setState { copy(books = books.data) }
             } else if (books is Result.Error) {
@@ -42,25 +49,35 @@ class BooksViewModel @Inject constructor(
         }
     }
 
-    private fun addBook(book: Book) {
+    private fun createBook(book: Book) {
         launchWithLoading(
             onStart = { copy(isLoading = true) },
             onError = { copy(isLoading = false, error = it.message) },
             onComplete = { copy(isLoading = false) }
         ) {
-            addBookUseCase(book)
-            loadBooks()
+            val result = createBookUseCase(book)
+            if (result is Result.Success) {
+                loadBooks()
+            } else if (result is Result.Error) {
+                setState { copy(error = result.exception.message) }
+            }
         }
     }
 
-    private fun updateStatus(bookId: String, status: BookStatus) {
+
+    private fun updateStatus(book: Book, status: BookStatus) {
         launchWithLoading(
             onStart = { copy(isLoading = true) },
             onError = { copy(isLoading = false, error = it.message) },
             onComplete = { copy(isLoading = false) }
         ) {
-            updateStatusUseCase(bookId, status)
-            loadBooks()
+            val uid = getUserId() ?: return@launchWithLoading
+            val result = updateStatusUseCase(uid, book, status)
+            if (result is Result.Success) {
+                loadBooks()
+            } else if (result is Result.Error) {
+                setState { copy(error = result.exception.message) }
+            }
         }
     }
 }
@@ -72,7 +89,7 @@ data class BooksState(
 )
 
 sealed class BooksEvent {
-    data class AddBook(val book: Book) : BooksEvent()
-    data class UpdateStatus(val bookId: String, val status: BookStatus) : BooksEvent()
     object LoadBooks : BooksEvent()
+    data class CreateBook(val book: Book) : BooksEvent()
+    data class UpdateStatus(val book: Book, val status: BookStatus) : BooksEvent()
 }

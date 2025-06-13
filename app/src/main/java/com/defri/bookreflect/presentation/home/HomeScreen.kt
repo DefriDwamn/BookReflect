@@ -19,7 +19,6 @@ import com.defri.bookreflect.presentation.books.BooksScreen
 @Composable
 fun HomeScreen(
     onNavigateToProfile: () -> Unit,
-    onNavigateToAddBook: () -> Unit,
     onNavigateToBookDetail: (String) -> Unit
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
@@ -86,7 +85,6 @@ fun HomeScreen(
             when (selectedTab) {
                 0 -> HomeContent()
                 1 -> BooksScreen(
-                    onNavigateToAddBook = onNavigateToAddBook,
                     onNavigateToBookDetail = onNavigateToBookDetail
                 )
                 2 -> MoodContent()
