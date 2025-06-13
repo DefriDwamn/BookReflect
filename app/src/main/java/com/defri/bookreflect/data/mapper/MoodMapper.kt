@@ -5,6 +5,16 @@ import com.defri.bookreflect.data.remote.FirestoreMoodDto
 import com.defri.bookreflect.domain.model.Mood
 
 object MoodMapper {
+    fun toDto(domain: Mood): FirestoreMoodDto {
+        return FirestoreMoodDto(
+            domain.id,
+            domain.bookId,
+            domain.tag,
+            domain.note,
+            domain.quotes,
+            domain.createdAt
+        )
+    }
     fun fromDto(dto: FirestoreMoodDto): Mood {
         return Mood(
             dto.id,
