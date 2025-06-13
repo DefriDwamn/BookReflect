@@ -1,5 +1,6 @@
 package com.defri.bookreflect.data.repository
 
+import android.util.Log
 import com.defri.bookreflect.domain.model.Book
 import com.defri.bookreflect.core.Result
 import com.defri.bookreflect.data.local.BookDao
@@ -51,8 +52,13 @@ class BookRepositoryImpl @Inject constructor(
     override suspend fun getUserBooks(userId: String): Result<List<Book>> {
         return try {
             val local = dao.getAll().map { BookMapper.fromEntity(it).copy(isLocal = true) }
-            val remote = firestoreBookSource.getUserBooks(userId).map {
-                BookMapper.fromDto(it).copy(isLocal = false)
+            val remote = try {
+                firestoreBookSource.getUserBooks(userId).map {
+                    BookMapper.fromDto(it).copy(isLocal = false)
+                }
+            } catch (e: Exception) {
+                Log.e("getUserBooks", "Remote fetch failed: ${e.message}")
+                emptyList()
             }
             Result.Success(local + remote)
         } catch (e: Exception) {
