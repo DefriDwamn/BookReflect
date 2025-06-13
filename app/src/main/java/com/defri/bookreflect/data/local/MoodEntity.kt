@@ -7,7 +7,8 @@ import com.defri.bookreflect.data.local.converters.StringListConverter
 
 @Entity(tableName = "moods")
 data class MoodEntity(
-    @PrimaryKey val id: String,
+    @PrimaryKey
+    val id: String,
     val bookId: String,
     val tag: String,
     val note: String,
