@@ -1,7 +1,5 @@
 package com.defri.bookreflect.data.remote
 
-import com.defri.bookreflect.data.model.Book
-import com.defri.bookreflect.data.model.BookStatus
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -12,19 +10,38 @@ class FirestoreBookSource @Inject constructor(
     private val firestore: FirebaseFirestore
 ) {
     private val booksCollection = firestore.collection("books")
+    private fun userBooksRefs(userId: String) =
+        firestore.collection("users").document(userId).collection("booksRefs")
 
-    suspend fun addBook(book: Book) {
-        booksCollection.add(book).await()
+    suspend fun addBookToUser(userId: String, bookId: String) {
+        val statusData = mapOf("status" to "ADDED")
+        userBooksRefs(userId).document(bookId).set(statusData).await()
     }
 
-    suspend fun updateBookStatus(bookId: String, status: BookStatus) {
-        booksCollection.document(bookId)
-            .update("status", status.name)
-            .await()
+    suspend fun updateBookStatus(userId: String, bookId: String, status: String) {
+        userBooksRefs(userId).document(bookId).update("status", status).await()
     }
 
-    suspend fun getBooks(): List<Book> {
-        val snapshot = booksCollection.get().await()
-        return snapshot.documents.mapNotNull { it.toObject(Book::class.java)?.copy(id = it.id) }
+    suspend fun getUserBooks(userId: String): List<FirestoreBookDto> {
+        val bookIdsStatus = userBooksRefs(userId).get().await().documents.mapNotNull { doc ->
+            val status = doc.getString("status")
+            if (status != null) doc.id to status else null
+        }
+        val books = mutableListOf<FirestoreBookDto>()
+        for ((bookId, status) in bookIdsStatus) {
+            val book = booksCollection.document(bookId).get().await().toObject(
+                FirestoreBookDto::class.java
+            )
+            if (book != null) {
+                books.add(book.copy(id = bookId, status = status))
+            }
+        }
+        return books
+    }
+
+    suspend fun getGlobalBooks(): List<FirestoreBookDto> {
+        return booksCollection.get().await().documents.mapNotNull {
+            it.toObject(FirestoreBookDto::class.java)?.copy(id = it.id)
+        }
     }
 }
