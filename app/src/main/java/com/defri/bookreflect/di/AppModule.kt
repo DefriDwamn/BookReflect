@@ -1,5 +1,6 @@
 package com.defri.bookreflect.di
 
+import com.defri.bookreflect.data.local.BookDao
 import com.defri.bookreflect.data.remote.FirebaseAuthSource
 import com.defri.bookreflect.data.remote.FirestoreBookSource
 import com.defri.bookreflect.data.remote.GoogleBooksService
@@ -63,5 +64,6 @@ object AppModule {
     @Singleton
     fun provideBookRepository(
         firestoreBookSource: FirestoreBookSource,
-    ): BookRepository = BookRepositoryImpl(firestoreBookSource)
+        bookDao: BookDao
+    ): BookRepository = BookRepositoryImpl(firestoreBookSource, bookDao)
 }
