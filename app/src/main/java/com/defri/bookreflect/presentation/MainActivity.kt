@@ -60,8 +60,6 @@ fun BookReflectApp() {
                 composable("home") {
                     HomeScreen(
                         onNavigateToProfile = { navController.navigate("profile") },
-                        //TODO: навигация на детали книги
-                        onNavigateToBookDetail = { }
                     )
                 }
                 composable("forgot_password") {
