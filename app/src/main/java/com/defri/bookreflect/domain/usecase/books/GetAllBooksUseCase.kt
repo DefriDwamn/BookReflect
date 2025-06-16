@@ -8,7 +8,7 @@ import javax.inject.Inject
 class GetAllBooksUseCase @Inject constructor(
     private val repository: BookRepository
 ) {
-    suspend operator fun invoke(): Result<List<Book>> {
-        return repository.getAllBooks()
+    suspend operator fun invoke(lastDocumentId: String?, pageSize: Int): Result<List<Book>> {
+        return repository.getGlobalBooksPaged(lastDocumentId, pageSize)
     }
 }

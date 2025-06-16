@@ -9,5 +9,5 @@ interface BookRepository {
     suspend fun addBook(userId: String, bookId: String): Result<Unit>
     suspend fun updateBookStatus(userId: String, book: Book, status: BookStatus): Result<Unit>
     suspend fun getUserBooks(userId: String): Result<List<Book>>
-    suspend fun getAllBooks(): Result<List<Book>>
+    suspend fun getGlobalBooksPaged(lastDocumentId: String?, pageSize: Int): Result<List<Book>>
 }

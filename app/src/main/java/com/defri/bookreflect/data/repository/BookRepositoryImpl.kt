@@ -66,7 +66,7 @@ class BookRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getAllBooks(): Result<List<Book>> {
+    override suspend fun getGlobalBooksPaged(lastDocumentId: String?, pageSize: Int): Result<List<Book>> {
         return try {
             val snapshot = firestoreBookSource.getGlobalBooks()
             val books = snapshot.map { BookMapper.fromDto(it).copy(isLocal = false) }
