@@ -14,5 +14,6 @@ data class MoodEntity(
     val note: String,
     @TypeConverters(StringListConverter::class)
     val quotes: List<String>,
+    val isLocal: Boolean,
     val createdAt: Long
 )

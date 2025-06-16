@@ -6,5 +6,6 @@ data class Mood(
     val tag: String,
     val note: String,
     val quotes: List<String>,
+    val isLocal: Boolean,
     val createdAt: Long
 )

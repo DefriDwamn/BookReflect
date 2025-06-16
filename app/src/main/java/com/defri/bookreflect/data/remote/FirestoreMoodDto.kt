@@ -6,6 +6,7 @@ data class FirestoreMoodDto(
     @DocumentId
     val id: String = "",
     val bookId: String = "",
+    val userId: String = "",
     val tag: String = "",
     val note: String = "",
     val quotes: List<String> = emptyList(),

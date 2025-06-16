@@ -3,6 +3,7 @@ package com.defri.bookreflect.data.mapper
 import com.defri.bookreflect.data.local.MoodEntity
 import com.defri.bookreflect.data.remote.FirestoreMoodDto
 import com.defri.bookreflect.domain.model.Mood
+import java.util.UUID
 
 object MoodMapper {
     fun toDto(domain: Mood): FirestoreMoodDto {
@@ -11,8 +12,8 @@ object MoodMapper {
             domain.bookId,
             domain.tag,
             domain.note,
-            domain.quotes,
-            domain.createdAt
+            quotes = domain.quotes,
+            createdAt = domain.createdAt
         )
     }
     fun fromDto(dto: FirestoreMoodDto): Mood {
@@ -22,16 +23,18 @@ object MoodMapper {
             dto.tag,
             dto.note,
             dto.quotes,
+            false,
             dto.createdAt
         )
     }
     fun toEntity(domain: Mood): MoodEntity {
         return MoodEntity(
-            domain.id,
+            domain.id.ifBlank { UUID.randomUUID().toString() },
             domain.bookId,
             domain.tag,
             domain.note,
             domain.quotes,
+            domain.isLocal,
             domain.createdAt
         )
     }
@@ -42,6 +45,7 @@ object MoodMapper {
             entity.tag,
             entity.note,
             entity.quotes,
+            entity.isLocal,
             entity.createdAt
         )
     }
