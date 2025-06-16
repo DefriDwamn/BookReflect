@@ -44,4 +44,15 @@ class FirestoreBookSource @Inject constructor(
             it.toObject(FirestoreBookDto::class.java)?.copy(id = it.id)
         }
     }
+
+    suspend fun getGlobalBooksPaged(lastDocumentId: String?, pageSize: Int): List<FirestoreBookDto> {
+        var query = booksCollection.orderBy("title").limit(pageSize.toLong())
+        if (lastDocumentId != null) {
+            val lastDocSnapshot = booksCollection.document(lastDocumentId).get().await()
+            query = query.startAfter(lastDocSnapshot)
+        }
+        return query.get().await().documents.mapNotNull {
+            it.toObject(FirestoreBookDto::class.java)?.copy(id = it.id)
+        }
+    }
 }
