@@ -1,18 +1,16 @@
 package com.defri.bookreflect.presentation.books
 
-import android.content.ContentValues.TAG
-import android.util.Log
 import com.defri.bookreflect.core.BaseViewModel
 import com.defri.bookreflect.core.Result
 import com.defri.bookreflect.domain.model.Book
 import com.defri.bookreflect.domain.model.BookStatus
+import com.defri.bookreflect.domain.model.Mood
 import com.defri.bookreflect.domain.repository.AuthRepository
 import com.defri.bookreflect.domain.usecase.books.CreateBookUseCase
 import com.defri.bookreflect.domain.usecase.books.GetUserBooksUseCase
 import com.defri.bookreflect.domain.usecase.books.UpdateStatusUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import kotlin.math.log
 
 @HiltViewModel
 class BooksViewModel @Inject constructor(
@@ -85,7 +83,8 @@ class BooksViewModel @Inject constructor(
 data class BooksState(
     val isLoading: Boolean = false,
     val error: String? = null,
-    val books: List<Book> = emptyList()
+    val books: List<Book> = emptyList(),
+    val moods: List<Mood> = emptyList()
 )
 
 sealed class BooksEvent {

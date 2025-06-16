@@ -4,10 +4,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Book
-import androidx.compose.material.icons.filled.BookmarkAdd
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -15,25 +17,27 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.defri.bookreflect.domain.model.Book
-import com.defri.bookreflect.domain.model.BookStatus
+import com.defri.bookreflect.domain.model.Mood
 
 @Composable
 fun BookCard(
     book: Book,
-    onBookClick: () -> Unit,
-    onStatusChange: (BookStatus) -> Unit
+    moods: List<Mood>,
+    onAddMoodClick: (Book) -> Unit
 ) {
+    var showDialog by remember { mutableStateOf(false) }
+
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { showDialog = true },
         shape = MaterialTheme.shapes.medium,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
         )
     ) {
         Row(
-            modifier = Modifier
-                .clickable(onClick = onBookClick)
-                .padding(16.dp),
+            modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Surface(
@@ -52,9 +56,7 @@ fun BookCard(
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = book.title,
                     style = MaterialTheme.typography.titleMedium,
@@ -70,29 +72,87 @@ fun BookCard(
                     overflow = TextOverflow.Ellipsis
                 )
             }
+        }
+    }
 
-            IconButton(
-                onClick = {
-                    val newStatus = when (book.status) {
-                        BookStatus.ADDED -> BookStatus.COMPLETED
-                        null, BookStatus.COMPLETED -> BookStatus.ADDED
-                    }
-                    onStatusChange(newStatus)
-                }
-            ) {
-                Icon(
-                    imageVector = when (book.status) {
-                        null, BookStatus.ADDED -> Icons.Default.BookmarkAdd
-                        BookStatus.COMPLETED -> Icons.Default.CheckCircle
-                    },
-                    contentDescription = null,
-                    tint = when (book.status) {
-                        BookStatus.ADDED -> MaterialTheme.colorScheme.primary
-                        BookStatus.COMPLETED -> MaterialTheme.colorScheme.tertiary
-                        null -> MaterialTheme.colorScheme.secondary
-                    }
+    if (showDialog) {
+        BookDetailDialog(
+            book = book,
+            moods = moods,
+            onDismiss = { showDialog = false },
+            onAddMoodClick = onAddMoodClick
+        )
+    }
+}
+
+@Composable
+fun BookDetailDialog(
+    book: Book,
+    moods: List<Mood>,
+    onDismiss: () -> Unit,
+    onAddMoodClick: (Book) -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(book.title) },
+        text = {
+            Column {
+                Text(
+                    text = book.description.ifBlank { "No description available" },
+                    style = MaterialTheme.typography.bodyMedium
                 )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "Moods:",
+                    style = MaterialTheme.typography.titleMedium
+                )
+
+                if (moods.isEmpty()) {
+                    Text(
+                        text = "No moods yet",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                } else {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        moods.forEach { mood ->
+                            MoodItem(mood)
+                        }
+                    }
+                }
             }
+        },
+        confirmButton = {
+            Button(onClick = { onAddMoodClick(book) }) {
+                Text("Add Mood")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Close")
+            }
+        }
+    )
+}
+
+@Composable
+fun MoodItem(mood: Mood) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface)
+    ) {
+        Column(modifier = Modifier.padding(8.dp)) {
+            Text(
+                text = "#${mood.tag}",
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.labelMedium
+            )
+            Text(
+                text = mood.note,
+                style = MaterialTheme.typography.bodySmall,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     }
 }

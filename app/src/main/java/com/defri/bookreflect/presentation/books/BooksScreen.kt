@@ -17,12 +17,13 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.defri.bookreflect.domain.model.Book
 import com.defri.bookreflect.domain.model.BookStatus
+import com.defri.bookreflect.domain.model.Mood
 import com.defri.bookreflect.presentation.books.components.BookCard
 
 @Composable
 fun BooksScreen(
     viewModel: BooksViewModel = hiltViewModel(),
-    onNavigateToBookDetail: (String) -> Unit,
+    onNavigateToMoods: (String) -> Unit
     ) {
     val state by viewModel.state.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
@@ -84,9 +85,9 @@ fun BooksScreen(
                     filteredBooks.isEmpty() -> EmptyBooksList()
                     else -> BooksList(
                         books = filteredBooks,
-                        onBookClick = onNavigateToBookDetail,
-                        onStatusChange = { book, status ->
-                            viewModel.handleEvent(BooksEvent.UpdateStatus(book, status))
+                        bookMoods =  state.moods.groupBy { it.bookId },
+                        onAddMoodClick = { selectedBook ->
+                            onNavigateToMoods(selectedBook.id)
                         }
                     )
                 }
@@ -106,10 +107,10 @@ fun BooksScreen(
 }
 
 @Composable
-private fun BooksList(
+fun BooksList(
     books: List<Book>,
-    onBookClick: (String) -> Unit,
-    onStatusChange: (Book, BookStatus) -> Unit
+    bookMoods: Map<String, List<Mood>>,
+    onAddMoodClick: (Book) -> Unit
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -119,12 +120,13 @@ private fun BooksList(
         items(books, key = { it.id }) { book ->
             BookCard(
                 book = book,
-                onBookClick = { onBookClick(book.id) },
-                onStatusChange = { status -> onStatusChange(book, status) }
+                moods = bookMoods[book.id].orEmpty(),
+                onAddMoodClick = onAddMoodClick
             )
         }
     }
 }
+
 
 @Composable
 private fun EmptyBooksList() {
