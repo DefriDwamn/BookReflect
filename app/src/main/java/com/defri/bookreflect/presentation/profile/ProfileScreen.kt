@@ -22,12 +22,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.delay
 import kotlin.random.Random
 
-private val color = Color(
-    Random.nextFloat(),
-    Random.nextFloat(),
-    Random.nextFloat()
-)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(

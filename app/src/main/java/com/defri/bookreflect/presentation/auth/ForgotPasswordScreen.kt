@@ -62,7 +62,6 @@ fun ForgotPasswordScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             if (!state.isResetSent) {
-                // Reset Password Form
                 Text(
                     text = "Reset Password",
                     style = MaterialTheme.typography.headlineMedium,
@@ -122,7 +121,6 @@ fun ForgotPasswordScreen(
                     }
                 }
             } else {
-                // Success State
                 Icon(
                     imageVector = Icons.Default.CheckCircle,
                     contentDescription = "Success",
