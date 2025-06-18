@@ -9,6 +9,7 @@ import com.defri.bookreflect.domain.repository.AuthRepository
 import com.defri.bookreflect.domain.usecase.books.CreateBookUseCase
 import com.defri.bookreflect.domain.usecase.books.GetAllBooksUseCase
 import com.defri.bookreflect.domain.usecase.books.GetUserBooksUseCase
+import com.defri.bookreflect.domain.usecase.books.SearchBooksUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -18,6 +19,7 @@ class HomeViewModel @Inject constructor(
     private val getAllBooksUseCase: GetAllBooksUseCase,
     private val getUserBooksUseCase: GetUserBooksUseCase,
     private val createBookUseCase: CreateBookUseCase,
+    private val searchBooksUseCase: SearchBooksUseCase,
     private val authRepository: AuthRepository
 ) : BaseViewModel<HomeState, HomeEvent>() {
     override fun initialState(): HomeState = HomeState()
@@ -37,7 +39,14 @@ class HomeViewModel @Inject constructor(
                 loadMoreGlobalBooks()
             }
             is HomeEvent.AddBook -> addBook(event.book)
-            is HomeEvent.UpdateSearchQuery -> setState { copy(searchQuery = event.query) }
+            is HomeEvent.UpdateSearchQuery -> {
+                setState { copy(searchQuery = event.query) }
+                if (event.query.isNotBlank()) {
+                    searchBooks(event.query)
+                } else {
+                    setState { copy(searchResults = emptyList()) }
+                }
+            }
         }
     }
 
@@ -48,7 +57,7 @@ class HomeViewModel @Inject constructor(
 
     private fun loadInitialData() {
         launchWithLoading(
-            onStart = { copy(isLoading = true, error = null, isEndReached = false, isLoadingMore = false) },
+            onStart = { copy(error = null, isEndReached = false, isLoadingMore = false) },
             onError = { copy(isLoading = false, error = it.message) },
             onComplete = { copy(isLoading = false) }
         ) {
@@ -117,9 +126,8 @@ class HomeViewModel @Inject constructor(
 
     private fun addBook(book: Book) {
         launchWithLoading(
-            onStart = { copy(isLoading = true, error = null) },
-            onError = { copy(isLoading = false, error = it.message) },
-            onComplete = { copy(isLoading = false) }
+            onStart = { copy(error = null) },
+            onError = { copy(error = it.message) },
         ) {
             val uid = authRepository.getCurrentUser()?.uid
             if (uid == null) {
@@ -139,6 +147,23 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
+
+    private fun searchBooks(query: String) {
+        launchWithLoading(
+            onStart = { copy(error = null) },
+            onError = { copy(error = it.message) },
+        ) {
+            when (val result = searchBooksUseCase(query, PAGE_SIZE)) {
+                is Result.Success -> {
+                    setState { copy(searchResults = result.data ?: emptyList()) }
+                }
+                is Result.Error -> {
+                    setState { copy(error = result.exception.message) }
+                }
+                else -> {}
+            }
+        }
+    }
 }
 
 data class HomeState(
@@ -148,7 +173,8 @@ data class HomeState(
     val error: String? = null,
     val globalBooks: List<Book> = emptyList(),
     val userBooks: List<Book> = emptyList(),
-    val searchQuery: String = ""
+    val searchQuery: String = "",
+    val searchResults: List<Book> = emptyList()
 )
 
 sealed class HomeEvent {

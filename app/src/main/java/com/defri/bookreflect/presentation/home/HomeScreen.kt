@@ -111,6 +111,7 @@ fun HomeContent(
 
     LaunchedEffect(Unit) {
         if (state.globalBooks.isEmpty() && !state.isLoading) {
+            viewModel.setState { copy(isLoading = true) }
             viewModel.handleEvent(HomeEvent.LoadData)
         }
     }
@@ -201,17 +202,12 @@ fun HomeContent(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            val filteredAll by remember(state.globalBooks, state.searchQuery) {
+            val filteredAll by remember(state.globalBooks, state.searchQuery, state.searchResults) {
                 derivedStateOf {
                     if (state.searchQuery.isBlank()) {
                         state.globalBooks
                     } else {
-                        val q = state.searchQuery.lowercase()
-                        state.globalBooks.filter { book ->
-                            book.title.lowercase().contains(q) ||
-                                    book.author.lowercase().contains(q) ||
-                                    book.description.lowercase().contains(q)
-                        }
+                        state.searchResults
                     }
                 }
             }
@@ -235,7 +231,7 @@ fun HomeContent(
                             onAddBook = { viewModel.handleEvent(HomeEvent.AddBook(book)) }
                         )
                     }
-                    if (state.isLoadingMore) {
+                    if (state.isLoadingMore && state.searchQuery.isBlank()) {
                         item {
                             Box(
                                 modifier = Modifier
