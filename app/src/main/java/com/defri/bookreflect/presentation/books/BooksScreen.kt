@@ -23,7 +23,7 @@ import com.defri.bookreflect.presentation.books.components.BookCard
 @Composable
 fun BooksScreen(
     viewModel: BooksViewModel = hiltViewModel(),
-    onNavigateToMoods: (String) -> Unit
+    onNavigateToMoods: (String, String) -> Unit
 ) {
     val state by viewModel.state.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
@@ -72,7 +72,7 @@ fun BooksScreen(
                     books = filteredBooks,
                     bookMoods = state.moods.groupBy { it.bookId },
                     onAddMoodClick = { selectedBook ->
-                        onNavigateToMoods(selectedBook.id)
+                        onNavigateToMoods(selectedBook.id, selectedBook.title)
                     }
                 )
             }

@@ -14,7 +14,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class BooksViewModel @Inject constructor(
-    private val createBookUseCase: CreateBookUseCase,
     private val updateStatusUseCase: UpdateStatusUseCase,
     private val getUserBooksUseCase: GetUserBooksUseCase,
     private val authRepository: AuthRepository
