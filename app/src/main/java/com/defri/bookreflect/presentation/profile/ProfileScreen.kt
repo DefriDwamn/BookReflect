@@ -186,24 +186,6 @@ fun ProfileScreen(
                                 showEditDialog = true
                             }
                         )
-
-                        HorizontalDivider()
-
-                        ListItem(
-                            headlineContent = { Text("Reading Preferences") },
-                            leadingContent = {
-                                Icon(
-                                    imageVector = Icons.Default.Book,
-                                    contentDescription = "Reading Preferences"
-                                )
-                            },
-                            trailingContent = {
-                                Icon(
-                                    imageVector = Icons.Default.ChevronRight,
-                                    contentDescription = "Navigate"
-                                )
-                            }
-                        )
                     }
                 }
 
