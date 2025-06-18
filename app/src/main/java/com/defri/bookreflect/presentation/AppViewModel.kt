@@ -1,6 +1,6 @@
 package com.defri.bookreflect.presentation
 
-import androidx.lifecycle.ViewModel
+import com.defri.bookreflect.core.BaseViewModel
 import com.defri.bookreflect.domain.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -8,6 +8,16 @@ import javax.inject.Inject
 @HiltViewModel
 class AppViewModel @Inject constructor(
     private val authRepository: AuthRepository
-) : ViewModel() {
+) : BaseViewModel<AppState, AppEvent>() {
+    override fun initialState(): AppState = AppState()
+
+    override fun handleEvent(event: AppEvent) {
+    }
+
     val isAuthenticated get() = authRepository.getCurrentUser() != null
+}
+
+data class AppState(val dummy: Boolean = false)
+
+sealed class AppEvent {
 }
