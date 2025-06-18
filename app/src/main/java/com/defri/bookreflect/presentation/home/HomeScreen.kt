@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -92,21 +93,33 @@ fun HomeScreen(
                 1 -> BooksScreen(
                     onNavigateToMoods = {}
                 )
+
                 2 -> MoodContent()
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeContent(
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
     val listState = rememberLazyListState()
+    var isRefreshing by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        viewModel.handleEvent(HomeEvent.LoadData)
+        if (state.globalBooks.isEmpty() && !state.isLoading) {
+            viewModel.handleEvent(HomeEvent.LoadData)
+        }
+    }
+
+    LaunchedEffect(isRefreshing) {
+        if (isRefreshing) {
+            viewModel.handleEvent(HomeEvent.LoadData)
+            isRefreshing = false
+        }
     }
 
     LaunchedEffect(listState) {
@@ -122,7 +135,7 @@ fun HomeContent(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        if (state.isLoading) {
+        if (state.isLoading && !isRefreshing) {
             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             return@HomeContent
         }
@@ -145,12 +158,13 @@ fun HomeContent(
             )
             Spacer(modifier = Modifier.height(16.dp))
 
-            val recommendedBooks = remember(state.globalBooks, state.userBooks) {
-                state.globalBooks.filter { gb ->
-                    state.userBooks.none { ub -> ub.id == gb.id }
+            val recommendedBooks by remember(state.globalBooks, state.userBooks) {
+                derivedStateOf {
+                    state.globalBooks.filter { gb ->
+                        state.userBooks.none { ub -> ub.id == gb.id }
+                    }
                 }
             }
-
             if (recommendedBooks.isNotEmpty()) {
                 Text(
                     text = "Recommended Books",
@@ -187,32 +201,52 @@ fun HomeContent(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            val filteredAll = remember(state.globalBooks, state.searchQuery) {
-                if (state.searchQuery.isBlank()) {
-                    state.globalBooks
-                } else {
-                    val q = state.searchQuery.lowercase()
-                    state.globalBooks.filter { book ->
-                        book.title.lowercase().contains(q) ||
-                                book.author.lowercase().contains(q) ||
-                                book.description.lowercase().contains(q)
+            val filteredAll by remember(state.globalBooks, state.searchQuery) {
+                derivedStateOf {
+                    if (state.searchQuery.isBlank()) {
+                        state.globalBooks
+                    } else {
+                        val q = state.searchQuery.lowercase()
+                        state.globalBooks.filter { book ->
+                            book.title.lowercase().contains(q) ||
+                                    book.author.lowercase().contains(q) ||
+                                    book.description.lowercase().contains(q)
+                        }
                     }
                 }
             }
 
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(bottom = 16.dp),
-                state = listState
+            PullToRefreshBox(
+                isRefreshing = isRefreshing,
+                onRefresh = { isRefreshing = true },
+                modifier = Modifier.weight(1f)
             ) {
-                items(filteredAll, key = { it.id }) { book ->
-                    val alreadyAdded = state.userBooks.any { ub -> ub.id == book.id }
-                    RectangularBookCard(
-                        book = book,
-                        showAddButton = !alreadyAdded,
-                        onAddBook = { viewModel.handleEvent(HomeEvent.AddBook(book)) }
-                    )
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(bottom = 16.dp),
+                    state = listState
+                ) {
+                    items(filteredAll, key = { it.id }) { book ->
+                        val alreadyAdded = state.userBooks.any { ub -> ub.id == book.id }
+                        RectangularBookCard(
+                            book = book,
+                            showAddButton = !alreadyAdded,
+                            onAddBook = { viewModel.handleEvent(HomeEvent.AddBook(book)) }
+                        )
+                    }
+                    if (state.isLoadingMore) {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator()
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -230,9 +264,9 @@ private fun MoodContent() {
             text = "Reading Mood",
             style = MaterialTheme.typography.headlineMedium
         )
-        
+
         Spacer(modifier = Modifier.height(16.dp))
-        
+
         // Placeholder for mood notes
         Card(
             modifier = Modifier.fillMaxWidth(),
