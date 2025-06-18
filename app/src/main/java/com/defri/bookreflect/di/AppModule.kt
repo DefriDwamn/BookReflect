@@ -3,7 +3,8 @@ package com.defri.bookreflect.di
 import com.defri.bookreflect.data.local.BookDao
 import com.defri.bookreflect.data.remote.FirebaseAuthSource
 import com.defri.bookreflect.data.remote.FirestoreBookSource
-import com.defri.bookreflect.data.remote.GoogleBooksService
+import com.defri.bookreflect.data.remote.GoogleBooksApi
+import com.defri.bookreflect.data.remote.GoogleBooksSource
 import com.defri.bookreflect.data.repository.AuthRepositoryImpl
 import com.defri.bookreflect.data.repository.BookRepositoryImpl
 import com.defri.bookreflect.domain.repository.AuthRepository
@@ -53,17 +54,23 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideGoogleBooksService(): GoogleBooksService =
+    fun provideGoogleBooksApi(): GoogleBooksApi =
         Retrofit.Builder()
             .baseUrl("https://www.googleapis.com/books/v1/")
             .addConverterFactory(MoshiConverterFactory.create())
             .build()
-            .create(GoogleBooksService::class.java)
+            .create(GoogleBooksApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideGoogleBooksSource(api: GoogleBooksApi): GoogleBooksSource =
+        GoogleBooksSource(api)
 
     @Provides
     @Singleton
     fun provideBookRepository(
         firestoreBookSource: FirestoreBookSource,
-        bookDao: BookDao
-    ): BookRepository = BookRepositoryImpl(firestoreBookSource, bookDao)
+        bookDao: BookDao,
+        googleBooksSource: GoogleBooksSource
+    ): BookRepository = BookRepositoryImpl(firestoreBookSource, bookDao, googleBooksSource)
 }
