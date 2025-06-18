@@ -26,7 +26,6 @@ class BooksViewModel @Inject constructor(
     override fun handleEvent(event: BooksEvent) {
         when (event) {
             BooksEvent.LoadBooks -> loadBooks()
-            is BooksEvent.CreateBook -> createBook(event.book)
             is BooksEvent.UpdateStatus -> updateStatus(event.book, event.status)
         }
     }
@@ -46,22 +45,6 @@ class BooksViewModel @Inject constructor(
             }
         }
     }
-
-    private fun createBook(book: Book) {
-        launchWithLoading(
-            onStart = { copy(isLoading = true) },
-            onError = { copy(isLoading = false, error = it.message) },
-            onComplete = { copy(isLoading = false) }
-        ) {
-            val result = createBookUseCase(book)
-            if (result is Result.Success) {
-                loadBooks()
-            } else if (result is Result.Error) {
-                setState { copy(error = result.exception.message) }
-            }
-        }
-    }
-
 
     private fun updateStatus(book: Book, status: BookStatus) {
         launchWithLoading(
@@ -89,6 +72,5 @@ data class BooksState(
 
 sealed class BooksEvent {
     object LoadBooks : BooksEvent()
-    data class CreateBook(val book: Book) : BooksEvent()
     data class UpdateStatus(val book: Book, val status: BookStatus) : BooksEvent()
 }

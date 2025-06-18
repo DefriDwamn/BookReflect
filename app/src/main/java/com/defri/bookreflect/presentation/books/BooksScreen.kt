@@ -24,85 +24,55 @@ import com.defri.bookreflect.presentation.books.components.BookCard
 fun BooksScreen(
     viewModel: BooksViewModel = hiltViewModel(),
     onNavigateToMoods: (String) -> Unit
-    ) {
+) {
     val state by viewModel.state.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
-    var isDialogOpen by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.handleEvent(BooksEvent.LoadBooks)
     }
-
-    Scaffold(
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { isDialogOpen = true },
-                containerColor = MaterialTheme.colorScheme.primary
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Create Book")
-            }
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(
-                    PaddingValues(
-                        start = paddingValues.calculateStartPadding(LayoutDirection.Ltr),
-                        end = paddingValues.calculateEndPadding(LayoutDirection.Ltr),
-                        bottom = paddingValues.calculateBottomPadding()
-                    )
-                )
-                .padding(horizontal = 16.dp)
-        ) {
-            TextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
-                placeholder = { Text("Search books...") },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent
-                )
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp)
+    ) {
+        TextField(
+            value = searchQuery,
+            onValueChange = { searchQuery = it },
+            placeholder = { Text("Search books...") },
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent
             )
+        )
 
-            Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
-            val filteredBooks = if (searchQuery.isNotEmpty()) {
-                state.books.filter {
-                    it.title.contains(searchQuery, ignoreCase = true) ||
-                            it.author.contains(searchQuery, ignoreCase = true)
-                }
-            } else {
-                state.books
+        val filteredBooks = if (searchQuery.isNotEmpty()) {
+            state.books.filter {
+                it.title.contains(searchQuery, ignoreCase = true) ||
+                        it.author.contains(searchQuery, ignoreCase = true)
             }
+        } else {
+            state.books
+        }
 
-            Box(modifier = Modifier.fillMaxSize()) {
-                when {
-                    state.isLoading -> CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                    filteredBooks.isEmpty() -> EmptyBooksList()
-                    else -> BooksList(
-                        books = filteredBooks,
-                        bookMoods =  state.moods.groupBy { it.bookId },
-                        onAddMoodClick = { selectedBook ->
-                            onNavigateToMoods(selectedBook.id)
-                        }
-                    )
-                }
+        Box(modifier = Modifier.fillMaxSize()) {
+            when {
+                state.isLoading -> CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                filteredBooks.isEmpty() -> EmptyBooksList()
+                else -> BooksList(
+                    books = filteredBooks,
+                    bookMoods = state.moods.groupBy { it.bookId },
+                    onAddMoodClick = { selectedBook ->
+                        onNavigateToMoods(selectedBook.id)
+                    }
+                )
             }
         }
-    }
-
-    if (isDialogOpen) {
-        CreateBookDialog(
-            onDismiss = { isDialogOpen = false },
-            onCreateBook = { book ->
-                viewModel.handleEvent(BooksEvent.CreateBook(book))
-                isDialogOpen = false
-            }
-        )
     }
 }
 
@@ -144,59 +114,4 @@ private fun EmptyBooksList() {
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
         )
     }
-}
-
-@Composable
-fun CreateBookDialog(
-    onDismiss: () -> Unit,
-    onCreateBook: (Book) -> Unit
-) {
-    var title by remember { mutableStateOf("") }
-    var author by remember { mutableStateOf("") }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Create Book") },
-        text = {
-            Column {
-                TextField(
-                    value = title,
-                    onValueChange = { title = it },
-                    label = { Text("Title") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                TextField(
-                    value = author,
-                    onValueChange = { author = it },
-                    label = { Text("Author") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    val book = Book(
-                        id = "",
-                        title = title,
-                        author = author,
-                        isLocal = true,
-                        description = "",
-                        coverUrl = "",
-                        status = BookStatus.ADDED
-                    )
-                    onCreateBook(book)
-                },
-                enabled = title.isNotBlank() && author.isNotBlank()
-            ) {
-                Text("Create")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
-        }
-    )
 }

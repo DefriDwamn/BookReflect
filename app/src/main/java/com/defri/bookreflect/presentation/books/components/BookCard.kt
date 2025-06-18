@@ -97,8 +97,16 @@ fun BookDetailDialog(
         title = { Text(book.title) },
         text = {
             Column {
+                val limitedDescription = remember(book.description) {
+                    val limit = 200
+                    if (book.description.length > limit) {
+                        book.description.take(limit) + "..."
+                    } else {
+                        book.description
+                    }
+                }
                 Text(
-                    text = book.description.ifBlank { "No description available" },
+                    text = limitedDescription.ifBlank { "No description available" },
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Spacer(modifier = Modifier.height(16.dp))
@@ -106,7 +114,6 @@ fun BookDetailDialog(
                     text = "Moods:",
                     style = MaterialTheme.typography.titleMedium
                 )
-
                 if (moods.isEmpty()) {
                     Text(
                         text = "No moods yet",
@@ -120,18 +127,22 @@ fun BookDetailDialog(
                         }
                     }
                 }
+                Spacer(modifier = Modifier.height(16.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    Button(onClick = { onAddMoodClick(book) }) {
+                        Text("Add Mood")
+                    }
+                    TextButton(onClick = onDismiss) {
+                        Text("Close")
+                    }
+                }
             }
         },
-        confirmButton = {
-            Button(onClick = { onAddMoodClick(book) }) {
-                Text("Add Mood")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Close")
-            }
-        }
+        confirmButton = {},
+        dismissButton = {}
     )
 }
 
