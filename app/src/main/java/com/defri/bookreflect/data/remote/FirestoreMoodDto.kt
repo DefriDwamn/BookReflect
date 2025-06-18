@@ -7,7 +7,7 @@ data class FirestoreMoodDto(
     val id: String = "",
     val bookId: String = "",
     val userId: String = "",
-    val tag: String = "",
+    val tags: List<String> = emptyList(),
     val note: String = "",
     val quotes: List<String> = emptyList(),
     @get:PropertyName("created_at")

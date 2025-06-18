@@ -10,8 +10,8 @@ object MoodMapper {
         return FirestoreMoodDto(
             domain.id,
             domain.bookId,
-            domain.tag,
-            domain.note,
+            tags = domain.tags,
+            note = domain.note,
             quotes = domain.quotes,
             createdAt = domain.createdAt
         )
@@ -20,7 +20,7 @@ object MoodMapper {
         return Mood(
             dto.id,
             dto.bookId,
-            dto.tag,
+            dto.tags,
             dto.note,
             dto.quotes,
             false,
@@ -31,7 +31,7 @@ object MoodMapper {
         return MoodEntity(
             domain.id.ifBlank { UUID.randomUUID().toString() },
             domain.bookId,
-            domain.tag,
+            domain.tags,
             domain.note,
             domain.quotes,
             domain.isLocal,
@@ -42,7 +42,7 @@ object MoodMapper {
         return Mood(
             entity.id,
             entity.bookId,
-            entity.tag,
+            entity.tags,
             entity.note,
             entity.quotes,
             entity.isLocal,

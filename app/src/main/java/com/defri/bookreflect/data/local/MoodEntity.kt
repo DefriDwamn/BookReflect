@@ -10,7 +10,8 @@ data class MoodEntity(
     @PrimaryKey
     val id: String,
     val bookId: String,
-    val tag: String,
+    @TypeConverters(StringListConverter::class)
+    val tags: List<String>,
     val note: String,
     @TypeConverters(StringListConverter::class)
     val quotes: List<String>,
