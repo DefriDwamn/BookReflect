@@ -2,6 +2,7 @@ package com.defri.bookreflect.data.mapper
 
 import com.defri.bookreflect.data.local.BookEntity
 import com.defri.bookreflect.data.remote.FirestoreBookDto
+import com.defri.bookreflect.data.remote.GoogleBookDto
 import com.defri.bookreflect.domain.model.Book
 import com.defri.bookreflect.domain.model.BookStatus
 import java.util.UUID
@@ -48,6 +49,18 @@ object BookMapper {
             entity.description,
             entity.coverUrl,
             if (entity.status.isBlank()) null else BookStatus.valueOf(entity.status),
+        )
+    }
+    fun fromGoogleDto(dto: GoogleBookDto): Book {
+        val info = dto.volumeInfo
+        return Book(
+            id = dto.id,
+            isLocal = false,
+            title = info.title ?: "netu title",
+            author = info.authors?.joinToString(", ") ?: "Unknown",
+            description = info.description ?: "",
+            coverUrl = info.imageLinks?.thumbnail?.replace("http://", "https://") ?: "",
+            status = null
         )
     }
 }
