@@ -62,7 +62,7 @@ class HomeViewModel @Inject constructor(
                     val all = globalRes.data ?: emptyList()
                     lastGlobalBookId = all.lastOrNull()?.id
                     val endReached = all.size < PAGE_SIZE
-                    setState { copy(globalBooks = all, isEndReached = endReached) }
+                    setState { copy(globalBooks = all.distinctBy { it.id }, isEndReached = endReached) }
                 }
                 is Result.Error -> {
                     setState { copy(error = globalRes.exception.message) }
@@ -86,6 +86,7 @@ class HomeViewModel @Inject constructor(
         if (state.value.isLoadingMore || state.value.isEndReached) return
         setState { copy(isLoadingMore = true, error = null) }
         viewModelScope.launch {
+            Log.d("loadingMore","loading more")
             val uid = authRepository.getCurrentUser()?.uid
             if (uid == null) {
                 setState { copy(error = "not logged in", isLoadingMore = false) }
@@ -93,7 +94,8 @@ class HomeViewModel @Inject constructor(
             }
             when (val globalRes = getAllBooksUseCase(lastGlobalBookId, PAGE_SIZE)) {
                 is Result.Success -> {
-                    val newBooks = globalRes.data ?: emptyList()
+                    val newBooks = globalRes.data.orEmpty()
+                        .filter { newBook -> state.value.globalBooks.none { it.id == newBook.id } }
                     if (newBooks.isEmpty()) {
                         setState { copy(isEndReached = true, isLoadingMore = false) }
                     } else {
