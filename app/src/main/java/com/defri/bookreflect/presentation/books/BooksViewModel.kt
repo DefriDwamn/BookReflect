@@ -32,7 +32,6 @@ class BooksViewModel @Inject constructor(
 
     private fun loadBooks() {
         launchWithLoading(
-            onStart = { copy(isLoading = true) },
             onError = { copy(isLoading = false, error = it.message) },
             onComplete = { copy(isLoading = false) }
         ) {

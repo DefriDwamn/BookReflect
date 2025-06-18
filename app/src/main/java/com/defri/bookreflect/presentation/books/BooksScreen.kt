@@ -28,9 +28,13 @@ fun BooksScreen(
     val state by viewModel.state.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(state.books) {
+        if(state.books.isEmpty()){
+            viewModel.setState { copy(isLoading = true) }
+        }
         viewModel.handleEvent(BooksEvent.LoadBooks)
     }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
