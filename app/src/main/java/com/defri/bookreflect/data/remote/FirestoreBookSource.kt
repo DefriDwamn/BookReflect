@@ -55,4 +55,16 @@ class FirestoreBookSource @Inject constructor(
             it.toObject(FirestoreBookDto::class.java)?.copy(id = it.id)
         }
     }
+
+    suspend fun searchBooks(query: String, pageSize: Int): List<FirestoreBookDto> {
+        val searchQuery = query.lowercase()
+        return booksCollection
+            .whereGreaterThanOrEqualTo("title", searchQuery)
+            .whereLessThanOrEqualTo("title", searchQuery + '\uf8ff')
+            .limit(pageSize.toLong())
+            .get()
+            .await()
+            .documents
+            .mapNotNull { it.toObject(FirestoreBookDto::class.java)?.copy(id = it.id) }
+    }
 }
