@@ -96,6 +96,32 @@ class BookRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun searchBooks(query: String, pageSize: Int): Result<List<Book>> {
+        return try {
+            val firestoreBooks = try {
+                firestoreBookSource.searchBooks(query, pageSize)
+                    .map { BookMapper.fromDto(it).copy(isLocal = false) }
+            } catch (e: Exception) {
+                emptyList()
+            }
+            val needSize = pageSize - firestoreBooks.size
+            val googleBooks = if (needSize > 0) {
+                try {
+                    googleBooksSource.getBooksPaged(
+                        query = query,
+                        startIndex = 0,
+                        pageSize = needSize
+                    ).map { BookMapper.fromGoogleDto(it) }
+                } catch (e: Exception) {
+                    emptyList()
+                }
+            } else emptyList()
+            Result.Success(firestoreBooks + googleBooks)
+        } catch (e: Exception) {
+            Result.Error(e)
+        }
+    }
+
     private fun getRandomQuery(): String {
         val queries = listOf(
             "drama", "fantasy", "fiction", "history",
