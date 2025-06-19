@@ -1,10 +1,8 @@
 package com.defri.bookreflect.presentation
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.animation.EnterTransition
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -12,13 +10,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import com.defri.bookreflect.presentation.auth.ForgotPasswordScreen
 import com.defri.bookreflect.presentation.auth.LoginScreen
 import com.defri.bookreflect.presentation.auth.RegisterScreen
@@ -26,6 +25,7 @@ import com.defri.bookreflect.presentation.books.BooksScreen
 import com.defri.bookreflect.presentation.common.theme.BookReflectTheme
 import com.defri.bookreflect.presentation.home.HomeScreen
 import com.defri.bookreflect.presentation.profile.ProfileScreen
+import com.defri.bookreflect.presentation.moods.MoodsScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -101,8 +101,8 @@ fun BookReflectApp(viewModel: AppViewModel = hiltViewModel()) {
                         onNavigateToProfile = {
                         navController.navigate(Screen.Profile.route) {
                             launchSingleTop = true
-                        }
-                    })
+                        }},
+                        appViewModel = viewModel)
                 }
             }
         }
@@ -111,7 +111,10 @@ fun BookReflectApp(viewModel: AppViewModel = hiltViewModel()) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(onNavigateToProfile: () -> Unit) {
+fun MainScreen(
+    onNavigateToProfile: () -> Unit,
+    appViewModel: AppViewModel
+) {
     val tabNavController = rememberNavController()
     val tabs = listOf(
         TabItem("Home", Icons.Default.Home, Screen.MainHome.route),
@@ -119,6 +122,7 @@ fun MainScreen(onNavigateToProfile: () -> Unit) {
         TabItem("Mood", Icons.Default.EmojiEmotions, Screen.MainMood.route)
     )
     val currentRoute = tabNavController.currentBackStackEntryAsState().value?.destination?.route
+    val state by appViewModel.state.collectAsState()
 
     Scaffold(
         topBar = {
@@ -157,32 +161,37 @@ fun MainScreen(onNavigateToProfile: () -> Unit) {
                 }
             }
         }
-    ) { innerPadding ->
+    ) { paddingValues ->
         NavHost(
             navController = tabNavController,
             startDestination = Screen.MainHome.route,
-            modifier = Modifier.padding(innerPadding),
+            modifier = Modifier.padding(paddingValues),
         ) {
-            composable(Screen.MainHome.route) { HomeScreen() }
-            composable(Screen.MainBooks.route) { BooksScreen(onNavigateToMoods = {}) }
-            composable(Screen.MainMood.route) { MoodContent() }
-        }
-    }
-}
-
-@Composable
-fun MoodContent() {
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .padding(16.dp)) {
-        Text("Reading Mood", style = MaterialTheme.typography.headlineMedium)
-        Spacer(Modifier.height(16.dp))
-        Card(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "No mood notes yet",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+            composable(Screen.MainHome.route) {
+                HomeScreen()
+            }
+            composable(Screen.MainBooks.route) {
+                BooksScreen(
+                    onNavigateToMoods = { bookId, bookTitle ->
+                        appViewModel.handleEvent(
+                            AppEvent.SetSelectedBookForMood(bookId, bookTitle)
+                        )
+                        tabNavController.navigate(Screen.MainMood.route) {
+                            popUpTo(tabNavController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                        }
+                    }
+                )
+            }
+            composable(Screen.MainMood.route) {
+                MoodsScreen(
+                    bookId = state.selectedBookIdForMood,
+                    bookTitle = state.selectedBookTitleForMood,
+                    onBackFromCreateMood = {
+                        appViewModel.handleEvent(AppEvent.ClearSelectedBookForMood)
+                    }
                 )
             }
         }
