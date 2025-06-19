@@ -73,6 +73,8 @@ dependencies {
     implementation(libs.androidx.espresso.core)
     implementation(libs.androidx.navigation.compose.android)
 
+    testImplementation(libs.mockito.core)
+    testImplementation(libs.mockito.kotlin)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
