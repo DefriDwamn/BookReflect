@@ -1,14 +1,18 @@
 package com.defri.bookreflect.di
 
 import com.defri.bookreflect.data.local.BookDao
+import com.defri.bookreflect.data.local.MoodDao
 import com.defri.bookreflect.data.remote.FirebaseAuthSource
 import com.defri.bookreflect.data.remote.FirestoreBookSource
+import com.defri.bookreflect.data.remote.FirestoreMoodSource
 import com.defri.bookreflect.data.remote.GoogleBooksApi
 import com.defri.bookreflect.data.remote.GoogleBooksSource
 import com.defri.bookreflect.data.repository.AuthRepositoryImpl
 import com.defri.bookreflect.data.repository.BookRepositoryImpl
+import com.defri.bookreflect.data.repository.MoodRepositoryImpl
 import com.defri.bookreflect.domain.repository.AuthRepository
 import com.defri.bookreflect.domain.repository.BookRepository
+import com.defri.bookreflect.domain.repository.MoodRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -54,6 +58,11 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideFirestoreMoodSource(firestore: FirebaseFirestore): FirestoreMoodSource =
+        FirestoreMoodSource(firestore)
+
+    @Provides
+    @Singleton
     fun provideGoogleBooksApi(): GoogleBooksApi =
         Retrofit.Builder()
             .baseUrl("https://www.googleapis.com/books/v1/")
@@ -73,4 +82,11 @@ object AppModule {
         bookDao: BookDao,
         googleBooksSource: GoogleBooksSource
     ): BookRepository = BookRepositoryImpl(firestoreBookSource, bookDao, googleBooksSource)
+
+    @Provides
+    @Singleton
+    fun provideMoodRepository(
+        firestoreMoodSource: FirestoreMoodSource,
+        moodDao: MoodDao,
+    ): MoodRepository = MoodRepositoryImpl(firestoreMoodSource, moodDao)
 }
