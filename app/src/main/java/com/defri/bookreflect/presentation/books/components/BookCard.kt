@@ -9,6 +9,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -119,18 +121,19 @@ fun BookDetailDialog(
     val scope = rememberCoroutineScope()
     AlertDialog(onDismissRequest = onDismiss, title = { Text(book.title) }, text = {
         Column {
-            val limitedDescription = remember(book.description) {
-                val limit = 200
-                if (book.description.length > limit) {
-                    book.description.take(limit) + "..."
-                } else {
-                    book.description
+            Box(
+                modifier = Modifier
+                    .heightIn(min = 100.dp, max = 250.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                val description = remember(book.description) {
+                    book.description.ifBlank { "No description available" }
                 }
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodyMedium
+                )
             }
-            Text(
-                text = limitedDescription.ifBlank { "No description available" },
-                style = MaterialTheme.typography.bodyMedium
-            )
             Spacer(modifier = Modifier.height(16.dp))
             if (holdProgress > 0f) {
                 LinearProgressIndicator(
