@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -12,11 +11,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.defri.bookreflect.domain.model.Book
-import com.defri.bookreflect.domain.model.BookStatus
 import com.defri.bookreflect.domain.model.Mood
 import com.defri.bookreflect.presentation.books.components.BookCard
 
@@ -29,7 +26,7 @@ fun BooksScreen(
     var searchQuery by remember { mutableStateOf("") }
 
     LaunchedEffect(state.books) {
-        if(state.books.isEmpty()){
+        if(state.books.isEmpty() && !state.isLoading){
             viewModel.setState { copy(isLoading = true) }
         }
         viewModel.handleEvent(BooksEvent.LoadBooks)
@@ -73,7 +70,8 @@ fun BooksScreen(
                     bookMoods = state.moods.groupBy { it.bookId },
                     onAddMoodClick = { selectedBook ->
                         onNavigateToMoods(selectedBook.id, selectedBook.title)
-                    }
+                    },
+                    onDeleteBookWithMoods = { book -> viewModel.handleEvent(BooksEvent.DeleteBook(book)) }
                 )
             }
         }
@@ -84,7 +82,8 @@ fun BooksScreen(
 fun BooksList(
     books: List<Book>,
     bookMoods: Map<String, List<Mood>>,
-    onAddMoodClick: (Book) -> Unit
+    onAddMoodClick: (Book) -> Unit,
+    onDeleteBookWithMoods: (Book) -> Unit
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -95,7 +94,8 @@ fun BooksList(
             BookCard(
                 book = book,
                 moods = bookMoods[book.id].orEmpty(),
-                onAddMoodClick = onAddMoodClick
+                onAddMoodClick = onAddMoodClick,
+                onDeleteBookWithMoods = onDeleteBookWithMoods
             )
         }
     }
