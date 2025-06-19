@@ -24,7 +24,7 @@ fun BooksScreen(
     val state by viewModel.state.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
 
-    LaunchedEffect(state.books) {
+    LaunchedEffect(Unit) {
         if(state.books.isEmpty() && !state.isLoading){
             viewModel.setState { copy(isLoading = true) }
         }
