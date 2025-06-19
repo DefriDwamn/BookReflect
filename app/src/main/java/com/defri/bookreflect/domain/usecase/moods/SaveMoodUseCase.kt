@@ -8,7 +8,7 @@ import javax.inject.Inject
 class SaveMoodUseCase @Inject constructor(
     private val repository: MoodRepository
 ) {
-    suspend operator fun invoke(userId: String, mood: Mood): Result<Unit> {
+    suspend operator fun invoke(userId: String, mood: Mood): Result<Mood> {
         return repository.saveMood(userId, mood)
     }
 }

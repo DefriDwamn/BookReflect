@@ -14,7 +14,7 @@ class MoodRepositoryImpl @Inject constructor(
     private val dao: MoodDao
 ) : MoodRepository {
 
-    override suspend fun saveMood(userId: String, mood: Mood): Result<Unit> {
+    override suspend fun saveMood(userId: String, mood: Mood): Result<Mood> {
         return try {
             val entity = MoodMapper.toEntity(mood)
             dao.insert(entity)
@@ -22,7 +22,7 @@ class MoodRepositoryImpl @Inject constructor(
             // val moodWithId = MoodMapper.fromEntity(entity);
             // val dto = MoodMapper.toDto(moodWithId).copy(userId = userId)
             // firestoreMoodSource.saveMood(userId, dto)
-            Result.Success(Unit)
+            Result.Success(MoodMapper.fromEntity(entity))
         } catch (e: Exception) {
             Log.e("saveMood", "saving mood: ${e.message}")
             Result.Error(e)
@@ -53,7 +53,11 @@ class MoodRepositoryImpl @Inject constructor(
     override suspend fun deleteMood(userId: String, moodId: String): Result<Unit> {
         return try {
             dao.delete(moodId)
-            firestoreMoodSource.deleteMood(moodId)
+            try {
+                firestoreMoodSource.deleteMood(moodId)
+            } catch (e: Exception) {
+                Log.e("deleteMood", "deleting mood from Firestore: ${e.message}")
+            }
             Result.Success(Unit)
         } catch (e: Exception) {
             Log.e("deleteMood", "deleting mood: ${e.message}")
