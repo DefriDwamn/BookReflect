@@ -10,6 +10,9 @@ interface BookDao {
     @Update
     suspend fun update(book: BookEntity)
 
+    @Query("DELETE FROM books WHERE id = :bookId")
+    suspend fun delete(bookId: String)
+
     @Query("SELECT * FROM books")
     suspend fun getAll(): List<BookEntity>
 

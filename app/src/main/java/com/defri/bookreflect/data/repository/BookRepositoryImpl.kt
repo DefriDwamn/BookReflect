@@ -68,6 +68,17 @@ class BookRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun deleteBook(userId: String, bookId: String, isLocal: Boolean): Result<Unit> {
+        return try {
+            // TODO: check isLocal
+            dao.delete(bookId)
+            firestoreBookSource.deleteBookFromUser(userId, bookId)
+            Result.Success(Unit)
+        } catch (e: Exception) {
+            Result.Error(e)
+        }
+    }
+
     override suspend fun getGlobalBooksPaged(lastDocumentId: String?, pageSize: Int): Result<List<Book>> {
         return try {
             val firestoreBooks = try {

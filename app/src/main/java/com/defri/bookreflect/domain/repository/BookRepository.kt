@@ -11,4 +11,5 @@ interface BookRepository {
     suspend fun getUserBooks(userId: String): Result<List<Book>>
     suspend fun getGlobalBooksPaged(lastDocumentId: String?, pageSize: Int): Result<List<Book>>
     suspend fun searchBooks(query: String, pageSize: Int): Result<List<Book>>
+    suspend fun deleteBook(userId: String, bookId: String, isLocal: Boolean): Result<Unit>
 }

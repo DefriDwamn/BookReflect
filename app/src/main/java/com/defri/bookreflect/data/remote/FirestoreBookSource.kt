@@ -39,6 +39,10 @@ class FirestoreBookSource @Inject constructor(
         return books
     }
 
+    suspend fun deleteBookFromUser(userId: String, bookId: String) {
+        userBooksRefs(userId).document(bookId).delete().await()
+    }
+
     suspend fun getGlobalBooks(): List<FirestoreBookDto> {
         return booksCollection.get().await().documents.mapNotNull {
             it.toObject(FirestoreBookDto::class.java)?.copy(id = it.id)
