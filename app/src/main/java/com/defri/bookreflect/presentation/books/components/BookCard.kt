@@ -31,7 +31,6 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.defri.bookreflect.domain.model.Book
-import com.defri.bookreflect.domain.model.Mood
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -41,7 +40,6 @@ import kotlinx.coroutines.launch
 @Composable
 fun BookCard(
     book: Book,
-    moods: List<Mood>,
     onAddMoodClick: (Book) -> Unit,
     onDeleteBookWithMoods: (Book) -> Unit,
 ) {
@@ -102,7 +100,6 @@ fun BookCard(
     if (showDialog) {
         BookDetailDialog(
             book = book,
-            moods = moods,
             onDismiss = { showDialog = false },
             onAddMoodClick = onAddMoodClick,
             onDeleteBookWithMoods = { onDeleteBookWithMoods(book) })
@@ -112,7 +109,6 @@ fun BookCard(
 @Composable
 fun BookDetailDialog(
     book: Book,
-    moods: List<Mood>,
     onDismiss: () -> Unit,
     onAddMoodClick: (Book) -> Unit,
     onDeleteBookWithMoods: () -> Unit,
@@ -135,23 +131,6 @@ fun BookDetailDialog(
                 text = limitedDescription.ifBlank { "No description available" },
                 style = MaterialTheme.typography.bodyMedium
             )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "Moods:", style = MaterialTheme.typography.titleMedium
-            )
-            if (moods.isEmpty()) {
-                Text(
-                    text = "No moods yet",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            } else {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    moods.forEach { mood ->
-                        MoodItem(mood)
-                    }
-                }
-            }
             Spacer(modifier = Modifier.height(16.dp))
             if (holdProgress > 0f) {
                 LinearProgressIndicator(
@@ -256,26 +235,4 @@ fun BookDetailDialog(
             }
         }
     })
-}
-
-@Composable
-fun MoodItem(mood: Mood) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface)
-    ) {
-        Column(modifier = Modifier.padding(8.dp)) {
-            Text(
-                text = "#${mood.tags.toString()}",
-                color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.labelMedium
-            )
-            Text(
-                text = mood.note,
-                style = MaterialTheme.typography.bodySmall,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
-    }
 }

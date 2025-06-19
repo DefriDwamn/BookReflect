@@ -14,7 +14,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.defri.bookreflect.domain.model.Book
-import com.defri.bookreflect.domain.model.Mood
 import com.defri.bookreflect.presentation.books.components.BookCard
 
 @Composable
@@ -67,7 +66,6 @@ fun BooksScreen(
                 filteredBooks.isEmpty() -> EmptyBooksList()
                 else -> BooksList(
                     books = filteredBooks,
-                    bookMoods = state.moods.groupBy { it.bookId },
                     onAddMoodClick = { selectedBook ->
                         onNavigateToMoods(selectedBook.id, selectedBook.title)
                     },
@@ -81,7 +79,6 @@ fun BooksScreen(
 @Composable
 fun BooksList(
     books: List<Book>,
-    bookMoods: Map<String, List<Mood>>,
     onAddMoodClick: (Book) -> Unit,
     onDeleteBookWithMoods: (Book) -> Unit
 ) {
@@ -93,7 +90,6 @@ fun BooksList(
         items(books, key = { it.id }) { book ->
             BookCard(
                 book = book,
-                moods = bookMoods[book.id].orEmpty(),
                 onAddMoodClick = onAddMoodClick,
                 onDeleteBookWithMoods = onDeleteBookWithMoods
             )
